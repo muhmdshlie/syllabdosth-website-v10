@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { signOut } from '@/app/auth-actions';
 import type { CurrentUser } from '@/lib/auth';
 
-const roleLabel = { learner: 'Learner', professional: 'Professional', faculty: 'Faculty', admin: 'Admin' } as const;
+const roleLabel = { learner: 'Learner', professional: 'Professional', faculty: 'Faculty', franchise: 'Franchise', admin: 'Admin' } as const;
 
 export function DashboardShell({ user, title, tabs, children }: { user: CurrentUser; title: string; tabs?: { href: string; label: string; active?: boolean }[]; children: ReactNode }) {
   return (
