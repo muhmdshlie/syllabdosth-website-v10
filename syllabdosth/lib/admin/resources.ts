@@ -12,7 +12,7 @@ export const MODES = o('Online', 'Offline', 'Online & offline');
 export const ENQUIRY_STATUS = ol([['new', 'New'], ['contacted', 'Contacted'], ['converted', 'Enrolled / converted'], ['closed', 'Closed']]);
 export const BOOKING_STATUS = ol([['pending', 'Pending'], ['confirmed', 'Confirmed'], ['declined', 'Declined'], ['cancelled', 'Cancelled'], ['completed', 'Completed']]);
 export const APPLICATION_STATUS = ol([['new', 'New'], ['reviewing', 'Reviewing'], ['approved', 'Approved'], ['rejected', 'Rejected']]);
-export const ROLES = ol([['learner', 'Learner / student'], ['professional', 'Professional'], ['faculty', 'Faculty / instructor'], ['admin', 'Admin']]);
+export const ROLES = ol([['learner', 'Learner / student'], ['professional', 'Professional'], ['faculty', 'Faculty / instructor'], ['franchise', 'Franchise'], ['admin', 'Admin']]);
 export const USER_STATUS = ol([['active', 'Active'], ['blocked', 'Blocked']]);
 export const PERMISSIONS = ol([
   ['all', 'Everything'], ['courses', 'Courses & lessons'], ['students', 'Students & enrolments'], ['instructors', 'Instructors'],
