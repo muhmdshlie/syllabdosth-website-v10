@@ -1,3 +1,4 @@
+import withPWA from '@ducanh2912/next-pwa';
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -5,4 +6,6 @@ const nextConfig = {
   experimental: { serverActions: { bodySizeLimit: '6mb' } },
   images: { remotePatterns: [{ protocol: 'https', hostname: '*.supabase.co' }] },
 };
-export default nextConfig;
+export default withPWA({
+  dest: 'public',
+})(nextConfig);
