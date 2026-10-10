@@ -138,7 +138,7 @@ const listingPages: ContentDef = {
 const footer: ContentDef = {
   key: 'page.footer', title: 'Footer', kind: 'page',
   fields: [t('line1', 'Big text, line 1'), t('line2', 'Big text, line 2'), ta('blurb', 'Short description', 2), t('bigWord', 'Large faded word'), t('bottomNote', 'Bottom line (right)', { full: true })],
-  defaults: { line1: 'Learn today,', line2: 'Lead tomorrow.', blurb: 'Certified courses and verified professionals, in one place.', bigWord: 'Syllabdosth', bottomNote: '30-day money-back guarantee' },
+  defaults: { line1: 'Learn today,', line2: 'Lead tomorrow.', blurb: 'Certified courses and verified professionals, in one place.', bigWord: 'Syllabdosth', bottomNote: '' },
 };
 
 const legal = (key: string, title: string, body: string[]): ContentDef => ({
@@ -264,3 +264,4 @@ export function mergeContent<T extends Row>(defaults: T, saved: unknown): T {
 export const DEFAULT_HERO_PHOTO = heroPhotos.main.src;
 export const imageFallback = (v: unknown, fallback: string) => (typeof v === 'string' && v.trim() ? v : fallback);
 export { photo };
+

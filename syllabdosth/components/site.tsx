@@ -128,9 +128,12 @@ export async function Footer() {
         <p aria-hidden className="select-none py-10 text-center font-display text-[15vw] font-medium uppercase leading-[0.8] tracking-[-0.05em] text-white/[0.06] lg:text-[170px]">{f.bigWord}</p>
         <div className="micro flex flex-col gap-3 text-ink-dark-muted sm:flex-row sm:justify-between">
           <p>© {new Date().getFullYear()} {site.siteName} · All rights reserved</p>
-          <p>{[f.bottomNote, site.site].filter(Boolean).join(' · ')} · Photos: <a className="underline" href="https://unsplash.com/license" target="_blank" rel="noreferrer">Unsplash</a> & others</p>
+          
         </div>
       </div>
     </footer>
   );
 }
+
+
+
