@@ -193,3 +193,4 @@ export const gallery = [
   { label: 'Blouse tailoring', tone: 'linear-gradient(135deg,#D9DFEE,#8FA0C8)' },
   { label: 'Bridal makeup', tone: 'linear-gradient(135deg,#F1D3E3,#CF86B0)' },
 ];
+
