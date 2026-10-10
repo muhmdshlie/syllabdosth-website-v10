@@ -67,7 +67,7 @@ const home: ContentDef = {
     stats: defaultStats,
     manifesto: {
       text: 'Syllabdosth is more than a course. It is a craft you can hold in your hands, a certificate that opens doors, and a career you build one client at a time — taught by professionals who still take bookings, practised on real work from the very first day.',
-      footnotes: ['200+ certified courses across tailoring, beauty, nail art, mehandi, saree draping and embroidery.', 'Online and offline batches from Bengaluru, with a 30-day money-back guarantee on every course.'],
+      footnotes: ['200+ certified courses across tailoring, beauty, nail art, mehandi, saree draping and embroidery.', 'Online and offline batches from Bengaluru.'],
     },
     story: craftStory.map((s) => ({ word: s.word, eyebrow: s.eyebrow, line: s.line, image: s.center.src, alt: s.center.alt, callouts: s.callouts.map((c) => ({ image: c.img, title: c.title, text: c.text })) })),
     courses: { eyebrow: 'Learn', title: 'Courses worth certifying in', sub: 'Programmes taught by working professionals, with a certificate that gets you listed on Syllabdosth.' },
