@@ -119,7 +119,7 @@ export default async function CoursePage({ params }: { params: { slug: string } 
             <div className="card sticky top-6 !p-7">
               <p className="text-[13px] text-ink-soft">Course fee</p>
               <p className="mt-1 font-serif text-[36px] font-bold leading-none">{inr(course.price)}</p>
-              <p className="mt-2 text-[13px] text-ink-soft">{t.feeNote}</p>
+              
               {offers.map((o) => (
                 <div key={o.id} className="mt-4 rounded-[4px] border border-dashed border-noir/30 bg-white/70 px-4 py-3" data-testid="course-offer">
                   <p className="text-[13px] font-semibold">{o.discount_text}</p>
