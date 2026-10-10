@@ -117,7 +117,7 @@ export default async function CoursePage({ params }: { params: { slug: string } 
 
           <aside className="lg:pt-10">
             <div className="card sticky top-6 !p-7">
-              <p className="text-[13px] text-ink-soft">Course fee</p>
+              <p className="text-[13px] text-ink-soft">Coursfeee </p>
               <p className="mt-1 font-serif text-[36px] font-bold leading-none">{inr(course.price)}</p>
               
               {offers.map((o) => (

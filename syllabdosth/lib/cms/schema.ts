@@ -128,7 +128,7 @@ const listingPages: ContentDef = {
   ],
   defaults: {
     courses: { title: 'Courses worth certifying in', sub: 'Short and long programmes taught by working professionals. Every course ends with an industry-recognised certificate.' },
-    course: { feeNote: 'EMI and scholarships available — ask when we call.', guarantee: '30-day money-back guarantee.', moduleNote: 'Live sessions, demonstrations and graded practice work for this module. Detailed lesson plan shared after enrolment.' },
+    course: { feeNote: 'EMI and scholarships available — ask when we call.', guarantee: '', moduleNote: 'Live sessions, demonstrations and graded practice work for this module. Detailed lesson plan shared after enrolment.' },
     services: { title: 'Book a verified professional', sub: 'Certified professionals for beauty, tailoring, mehndi, draping and creative services. Choose a service, check the starting price and send a request — you pay nothing until the professional confirms.', groupTitle: 'Booking for a group or an event?', groupText: 'Bridal parties, office wellness days, college fests — we’ll plan the artists for you.' },
     blog: { title: 'From the blog', sub: 'Career tips and craft know-how from our faculty and team.' },
     help: { title: 'Help & FAQ', sub: '' },
@@ -264,6 +264,7 @@ export function mergeContent<T extends Row>(defaults: T, saved: unknown): T {
 export const DEFAULT_HERO_PHOTO = heroPhotos.main.src;
 export const imageFallback = (v: unknown, fallback: string) => (typeof v === 'string' && v.trim() ? v : fallback);
 export { photo };
+
 
 
 

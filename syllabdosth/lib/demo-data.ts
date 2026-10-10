@@ -174,7 +174,7 @@ export const faqs: Faq[] = [
   { q: 'Can I learn online?', a: 'Most courses run online and offline. Short courses (up to 14 days) are fully online; longer programmes combine live online classes with centre practice.' },
   { q: 'What happens if I\'m not happy with a booking?', a: 'Contact support within 48 hours. We review every complaint with the professional and arrange a redo or refund where appropriate.' },
   { q: 'Do I need equipment before I start a course?', a: 'No. Your first-week kit list is shared after enrolment, and starter kits are available at partner centres.' },
-  { q: 'Is there a refund policy for courses?', a: 'Yes — a 30-day money-back guarantee if the course isn\'t right for you.' },
+  { q: 'Is there a refund policy for courses?', a: 'Yes — a  if the course isn\'t right for you.' },
   { q: 'Which cities is Syllabdosth available in?', a: 'Courses are available online across India. Professional bookings are currently live in Bengaluru, with more Karnataka cities coming soon.' },
 ];
 
