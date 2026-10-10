@@ -161,7 +161,7 @@ const general: ContentDef = {
       { name: 'youtube', label: 'YouTube', type: 'url' }, { name: 'linkedin', label: 'LinkedIn', type: 'url' },
     ]),
   ],
-  defaults: { siteName: 'Syllabdosth', tagline: 'Learn Today, Lead Tomorrow.', phone: '+91 99018 84692', whatsapp: '919901884692', email: 'hello@syllabdosth.com', site: 'www.syllabdosth.com', address: '', socials: { instagram: '', facebook: '', youtube: '', linkedin: '' } },
+  defaults: { siteName: 'Syllabdosth', tagline: 'Learn Today, Lead Tomorrow.', phone: '+91 99018 84692', whatsapp: '919901884692', email: 'syllabdosth@gmail.com', site: 'www.syllabdosth.com', address: '', socials: { instagram: '', facebook: '', youtube: '', linkedin: '' } },
 };
 
 const branding: ContentDef = {
@@ -264,5 +264,6 @@ export function mergeContent<T extends Row>(defaults: T, saved: unknown): T {
 export const DEFAULT_HERO_PHOTO = heroPhotos.main.src;
 export const imageFallback = (v: unknown, fallback: string) => (typeof v === 'string' && v.trim() ? v : fallback);
 export { photo };
+
 
 

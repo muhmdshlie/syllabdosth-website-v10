@@ -13,6 +13,7 @@ export const CONTACT = {
   phoneHref: 'tel:+919901884692',
   whatsapp: 'https://wa.me/919901884692',
   site: 'www.syllabdosth.com',
-  email: 'hello@syllabdosth.com',
+  email: 'syllabdosth@gmail.com',
   tagline: 'Learn Today, Lead Tomorrow.',
 };
+
