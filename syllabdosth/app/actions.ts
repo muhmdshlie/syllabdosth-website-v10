@@ -148,3 +148,52 @@ export async function contactAction(_: ActionState, fd: FormData): Promise<Actio
   await notifyEnquiry('Contact message', { name: parsed.data.name, phone: parsed.data.phone, email: parsed.data.email, details: `${parsed.data.topic}: ${parsed.data.message}` });
   return { ok: true, message: 'Thanks — we’ll get back to you within one working day.' };
 }
+/* ------------------------------ Franchise enquiry ------------------------------ */
+const franchiseSchema = z
+  .object({
+    full_name: name,
+    mobile: phone,
+    email,
+    preferred_location: z.string().trim().min(2, 'Enter your preferred location').max(120),
+    investment_budget: z.enum(['₹1–2 lakh', '₹2–5 lakh', '₹5 lakh+', 'Custom amount'], {
+      errorMap: () => ({ message: 'Select an investment budget' }),
+    }),
+    custom_investment_amount: z.string().trim().max(50).optional().default(''),
+    business_experience: z.enum(['Yes, I have experience', 'No, I am a beginner', '']).optional().default(''),
+    additional_details: z.string().trim().max(2000).optional().default(''),
+  })
+  .refine((d) => d.investment_budget !== 'Custom amount' || d.custom_investment_amount.length > 0, {
+    message: 'Enter your investment amount',
+  });
+
+export async function franchiseEnquiryAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  const parsed = franchiseSchema.safeParse({
+    full_name: str(fd, 'Full name'),
+    mobile: str(fd, 'Mobile number'),
+    email: str(fd, 'Email'),
+    preferred_location: str(fd, 'Preferred location'),
+    investment_budget: str(fd, 'Investment budget'),
+    custom_investment_amount: str(fd, 'Custom investment amount'),
+    business_experience: str(fd, 'Business experience'),
+    additional_details: str(fd, 'Additional details'),
+  });
+  if (!parsed.success) return { error: firstError(parsed.error) };
+  const f = parsed.data;
+  await data.createFranchiseEnquiry({
+    full_name: f.full_name,
+    mobile: f.mobile,
+    email: f.email.toLowerCase(),
+    preferred_location: f.preferred_location,
+    investment_budget: f.investment_budget,
+    custom_investment_amount: f.investment_budget === 'Custom amount' ? f.custom_investment_amount : null,
+    business_experience: f.business_experience || null,
+    additional_details: f.additional_details || null,
+  });
+  await notifyEnquiry('Franchise enquiry', {
+    name: f.full_name,
+    phone: f.mobile,
+    email: f.email,
+    details: `${f.investment_budget}${f.custom_investment_amount ? ` (${f.custom_investment_amount})` : ''} · ${f.preferred_location}`,
+  });
+  return { ok: true, message: 'Thank you! Your franchise enquiry has been received. Our team will contact you soon.' };
+}

@@ -61,7 +61,7 @@ export async function sendTemplate(key: string, to: string | null | undefined, v
 }
 
 /** Website events → emails to the person who submitted and to the admin. */
-export async function notifyEnquiry(kind: 'Course enquiry' | 'Group enquiry' | 'Application' | 'Booking' | 'Contact message', vars: Record<string, string | number | null | undefined>, userTemplate?: string, userEmail?: string | null) {
+export async function notifyEnquiry(kind: 'Course enquiry' | 'Group enquiry' | 'Application' | 'Booking' | 'Contact message' | 'Franchise enquiry', vars: Record<string, string | number | null | undefined>, userTemplate?: string, userEmail?: string | null) {
   try {
     const s = await emailSettings();
     if (!s.enabled || !s.host) return;

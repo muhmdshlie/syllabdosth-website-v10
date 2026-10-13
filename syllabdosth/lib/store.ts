@@ -41,6 +41,9 @@ const seeds: Record<string, () => Row[]> = {
   group_enquiries: () => [
     { id: 'gr-2001', name: 'Rahul Menon', phone: '+91 98860 44556', email: 'rahul@acme.in', people: 25, preferred_date: '2026-12-06', event_type: 'Office wellness day — mehandi + nail art', location: 'Koramangala, Bengaluru', requirements: '2 artists, 4 hours.', status: 'new', notes: '', created_at: iso(5) },
   ],
+  franchise_enquiries: () => [
+    { id: 'fr-5001', full_name: 'Manoj Kumar', mobile: '+91 98450 66778', email: 'manoj@example.com', preferred_location: 'Davanagere', investment_budget: '₹2–5 lakh', custom_investment_amount: null, business_experience: 'Yes, I have experience', additional_details: 'Looking at a learning centre near the bus stand.', status: 'new', created_at: iso(8) },
+  ],
   enrollments: () => [
     { id: 'en-3001', course_id: 'c-13', user_id: 'demo-learner', name: 'Priya Sharma', phone: '+91 98450 12345', email: 'priya@example.com', mode: 'Online', message: 'Weekend batch please.', status: 'converted', notes: 'Weekend batch, starts 1st.', created_at: iso(48) },
     { id: 'en-3002', course_id: 'c-1', user_id: 'demo-learner-2', name: 'Rekha Nair', phone: '+91 97411 45678', email: 'rekha@example.com', mode: 'Offline', message: '', status: 'new', notes: '', created_at: iso(20) },

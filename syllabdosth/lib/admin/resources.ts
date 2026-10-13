@@ -404,6 +404,33 @@ const R: Resource[] = [
       { name: 'notes', label: 'Internal notes', type: 'textarea', rows: 3, full: true },
     ],
   },
+  {
+    key: 'franchise-enquiries', table: 'franchise_enquiries', pk: 'id', label: 'Franchise enquiries', singular: 'franchise enquiry', titleField: 'full_name', noCreate: true, createHint: 'Enquiries come from /franchise/apply.',
+    search: ['full_name', 'email', 'mobile', 'preferred_location'],
+    filters: [
+      { name: 'status', label: 'Status', options: ol([['new', 'New'], ['contacted', 'Contacted'], ['converted', 'Converted'], ['closed', 'Closed']]) },
+      { name: 'investment_budget', label: 'Budget', options: o('₹1–2 lakh', '₹2–5 lakh', '₹5 lakh+', 'Custom amount') },
+    ],
+    columns: [
+      { name: 'full_name', label: 'Applicant', kind: 'strong' },
+      { name: 'mobile', label: 'Phone' },
+      { name: 'preferred_location', label: 'Location' },
+      { name: 'investment_budget', label: 'Budget' },
+      { name: 'status', label: 'Status', kind: 'status' },
+      createdCol,
+    ],
+    fields: [
+      { name: 'status', label: 'Status', type: 'select', options: ol([['new', 'New'], ['contacted', 'Contacted'], ['converted', 'Converted'], ['closed', 'Closed']]) },
+      { name: 'full_name', label: 'Full name', type: 'text', readonly: true },
+      { name: 'mobile', label: 'Mobile number', type: 'text', readonly: true },
+      { name: 'email', label: 'Email', type: 'email', readonly: true },
+      { name: 'preferred_location', label: 'Preferred location', type: 'text', readonly: true },
+      { name: 'investment_budget', label: 'Investment budget', type: 'text', readonly: true },
+      { name: 'custom_investment_amount', label: 'Custom investment amount', type: 'text', readonly: true },
+      { name: 'business_experience', label: 'Business experience', type: 'text', readonly: true },
+      { name: 'additional_details', label: 'Additional details', type: 'textarea', rows: 5, readonly: true, full: true },
+    ],
+  },
 
   /* ------------------------------------------------------------------ communication */
   {

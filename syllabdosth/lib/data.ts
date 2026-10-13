@@ -304,3 +304,34 @@ export async function updateProfile(id: string, patch: { full_name?: string; pho
   if (isDemo) { const p = T<Profile>('profiles').find((x) => x.id === id); if (p) Object.assign(p, patch); return; }
   must(await db().from('profiles').update(patch).eq('id', id));
 }
+/* ------------------------------ Franchise enquiries ------------------------------ */
+export type FranchiseEnquiry = {
+  id: string;
+  full_name: string;
+  mobile: string;
+  email: string;
+  preferred_location: string;
+  investment_budget: string;
+  custom_investment_amount: string | null;
+  business_experience: string | null;
+  additional_details: string | null;
+  status: EnquiryStatus;
+  created_at: string;
+};
+
+export async function createFranchiseEnquiry(e: Omit<FranchiseEnquiry, 'id' | 'status' | 'created_at'>): Promise<string> {
+  if (isDemo) {
+    const id = newId('fr');
+    T<FranchiseEnquiry>('franchise_enquiries').unshift({ ...e, id, status: 'new', created_at: new Date().toISOString() });
+    return id;
+  }
+  return (must(await db().from('franchise_enquiries').insert(e).select('id').single()) as { id: string }).id;
+}
+export async function listFranchiseEnquiries(): Promise<FranchiseEnquiry[]> {
+  if (isDemo) return T<FranchiseEnquiry>('franchise_enquiries');
+  return must(await db().from('franchise_enquiries').select('*').order('created_at', { ascending: false }));
+}
+export async function setFranchiseEnquiryStatus(id: string, status: EnquiryStatus) {
+  if (isDemo) { const e = T<FranchiseEnquiry>('franchise_enquiries').find((x) => x.id === id); if (e) e.status = status; return; }
+  must(await db().from('franchise_enquiries').update({ status }).eq('id', id));
+}

@@ -1,12 +1,52 @@
-
 'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { franchiseEnquiryAction } from '@/app/actions';
 
 export default function FranchiseApplicationPage() {
   const [investment, setInvestment] = useState('');
   const [customInvestment, setCustomInvestment] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [status, setStatus] = useState<
+    { type: 'success' | 'error'; message: string } | null
+  >(null);
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (submitting) return;
+
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+
+    setSubmitting(true);
+    setStatus(null);
+
+    try {
+      const result = await franchiseEnquiryAction({}, formData);
+      if (result.ok) {
+        form.reset();
+        setInvestment('');
+        setCustomInvestment('');
+        setStatus({
+          type: 'success',
+          message: result.message ?? 'Thank you! Your enquiry has been received.',
+        });
+      } else {
+        setStatus({
+          type: 'error',
+          message: result.error ?? 'Something went wrong. Please try again.',
+        });
+      }
+    } catch {
+      setStatus({
+        type: 'error',
+        message: 'Network error. Please check your connection and try again.',
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   return (
     <main className="min-h-screen bg-[#F7F7FB] px-4 py-12 text-gray-900">
@@ -29,12 +69,7 @@ export default function FranchiseApplicationPage() {
             preferred location and investment plans with us.
           </p>
 
-          <form
-            action="mailto:info@syllabdosth.com"
-            method="post"
-            encType="text/plain"
-            className="mt-8 space-y-6"
-          >
+          <form onSubmit={handleSubmit} className="mt-8 space-y-6">
             <div className="grid gap-5 sm:grid-cols-2">
               <label className="block text-sm font-medium">
                 Full name *
@@ -148,11 +183,25 @@ export default function FranchiseApplicationPage() {
               />
             </label>
 
+            {status && (
+              <p
+                role={status.type === 'error' ? 'alert' : 'status'}
+                className={`rounded-lg border px-4 py-3 text-sm font-medium ${
+                  status.type === 'success'
+                    ? 'border-green-200 bg-green-50 text-green-800'
+                    : 'border-red-200 bg-red-50 text-red-800'
+                }`}
+              >
+                {status.message}
+              </p>
+            )}
+
             <button
               type="submit"
-              className="w-full rounded-lg bg-indigo-600 px-6 py-4 font-semibold text-white hover:bg-indigo-700"
+              disabled={submitting}
+              className="w-full rounded-lg bg-indigo-600 px-6 py-4 font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Submit Franchise Enquiry →
+              {submitting ? 'Submitting...' : 'Submit Franchise Enquiry →'}
             </button>
 
             <p className="text-center text-xs leading-5 text-gray-500">

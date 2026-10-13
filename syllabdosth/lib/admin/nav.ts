@@ -34,6 +34,7 @@ export const ADMIN_NAV: NavItem[] = [
   { label: 'Services & Bookings', icon: 'services', badge: 'bookings', children: [
     { label: 'Bookings', href: '/admin/bookings' },
     { label: 'Group Enquiries', href: '/admin/group-enquiries' },
+    { label: 'Franchise Enquiries', href: '/admin/franchise-enquiries' },
     { label: 'Services', href: '/admin/services' },
     { label: 'Professionals', href: '/admin/professionals' },
   ] },
