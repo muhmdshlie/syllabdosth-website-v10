@@ -199,7 +199,7 @@ export default function FranchiseApplicationPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full rounded-lg bg-indigo-600 px-6 py-4 font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+              className="w-full rounded-lg bg-black px-6 py-4 font-semibold text-white hover:bg-black disabled:cursor-not-allowed disabled:opacity-60"
             >
               {submitting ? 'Submitting...' : 'Submit Franchise Enquiry →'}
             </button>
