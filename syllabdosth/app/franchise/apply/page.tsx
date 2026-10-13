@@ -51,12 +51,12 @@ export default function FranchiseApplicationPage() {
   return (
     <main className="min-h-screen bg-[#F7F7FB] px-4 py-12 text-gray-900">
       <div className="mx-auto max-w-3xl">
-        <Link href="/franchise" className="text-sm font-semibold text-indigo-600">
+        <Link href="/franchise" className="text-sm font-semibold text-black">
           ← Back to Franchise
         </Link>
 
         <div className="mt-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-10">
-          <p className="text-sm font-semibold uppercase tracking-wider text-indigo-600">
+          <p className="text-sm font-semibold uppercase tracking-wider text-black">
             Syllabdosth Franchise
           </p>
 
@@ -77,7 +77,7 @@ export default function FranchiseApplicationPage() {
                   name="Full name"
                   required
                   placeholder="Enter your full name"
-                  className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-indigo-500"
+                  className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-gray-500"
                 />
               </label>
 
@@ -88,7 +88,7 @@ export default function FranchiseApplicationPage() {
                   type="tel"
                   required
                   placeholder="+91"
-                  className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-indigo-500"
+                  className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-gray-500"
                 />
               </label>
 
@@ -99,7 +99,7 @@ export default function FranchiseApplicationPage() {
                   type="email"
                   required
                   placeholder="you@example.com"
-                  className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-indigo-500"
+                  className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-gray-500"
                 />
               </label>
 
@@ -109,7 +109,7 @@ export default function FranchiseApplicationPage() {
                   name="Preferred location"
                   required
                   placeholder="City / District"
-                  className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-indigo-500"
+                  className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-gray-500"
                 />
               </label>
             </div>
@@ -125,7 +125,7 @@ export default function FranchiseApplicationPage() {
                       key={option}
                       className={`flex cursor-pointer items-center gap-3 rounded-lg border p-4 ${
                         investment === option
-                          ? 'border-indigo-500 bg-indigo-50'
+                          ? 'border-gray-500 bg-gray-50'
                           : 'border-gray-200'
                       }`}
                     >
@@ -152,7 +152,7 @@ export default function FranchiseApplicationPage() {
                     value={customInvestment}
                     onChange={(event) => setCustomInvestment(event.target.value)}
                     placeholder="Enter amount in ₹"
-                    className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-indigo-500"
+                    className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-gray-500"
                   />
                 </label>
               )}
@@ -179,7 +179,7 @@ export default function FranchiseApplicationPage() {
                 name="Additional details"
                 rows={4}
                 placeholder="Tell us about your plans or ask a question..."
-                className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-indigo-500"
+                className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-gray-500"
               />
             </label>
 
