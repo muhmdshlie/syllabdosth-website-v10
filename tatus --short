@@ -1,0 +1,19 @@
+warning: in the working copy of 'syllabdosth/components/site.tsx', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/syllabdosth/components/site.tsx b/syllabdosth/components/site.tsx[m
+[1mindex 4b4a7c7..23db634 100644[m
+[1m--- a/syllabdosth/components/site.tsx[m
+[1m+++ b/syllabdosth/components/site.tsx[m
+[36m@@ -128,9 +128,12 @@[m [mexport async function Footer() {[m
+         <p aria-hidden className="select-none py-10 text-center font-display text-[15vw] font-medium uppercase leading-[0.8] tracking-[-0.05em] text-white/[0.06] lg:text-[170px]">{f.bigWord}</p>[m
+         <div className="micro flex flex-col gap-3 text-ink-dark-muted sm:flex-row sm:justify-between">[m
+           <p>© {new Date().getFullYear()} {site.siteName} · All rights reserved</p>[m
+[31m-          <p>{[f.bottomNote, site.site].filter(Boolean).join(' · ')} · Photos: <a className="underline" href="https://unsplash.com/license" target="_blank" rel="noreferrer">Unsplash</a> & others</p>[m
+[32m+[m[41m          [m
+         </div>[m
+       </div>[m
+     </footer>[m
+   );[m
+ }[m
+[41m+[m
+[41m+[m
+[41m+[m
