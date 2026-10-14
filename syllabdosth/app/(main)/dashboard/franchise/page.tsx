@@ -11,7 +11,14 @@ export default async function FranchiseDashboard() {
   const user = await requireRole(['franchise'], '/dashboard/franchise');
 
   return (
-    <DashboardShell user={user} title="Franchise dashboard">
+    <DashboardShell
+      user={user}
+      title="Franchise dashboard"
+      tabs={[
+        { href: '/dashboard/franchise', label: 'Overview', active: true },
+        { href: '/dashboard/franchise/wallet', label: 'Wallet' },
+      ]}
+    >
 
       <StatGrid
         items={[

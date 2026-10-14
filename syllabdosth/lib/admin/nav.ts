@@ -53,6 +53,14 @@ export const ADMIN_NAV: NavItem[] = [
     { label: 'Newsletter Subscribers', href: '/admin/subscribers' },
     { label: 'Announcement Bar', href: '/admin/settings/announcement' },
   ] },
+  { label: 'Wallet', icon: 'coins', children: [
+    { label: 'Overview', href: '/admin/wallet' },
+    { label: 'Franchise Wallets', href: '/admin/wallet/franchises' },
+    { label: 'Commissions', href: '/admin/wallet/commissions' },
+    { label: 'Payout Requests', href: '/admin/wallet/payouts' },
+    { label: 'Refunds', href: '/admin/wallet/refunds' },
+    { label: 'Reconciliation', href: '/admin/wallet/reconciliation' },
+  ] },
   { label: 'Reports', icon: 'reports', children: [
     { label: 'Enrolment Report', href: '/admin/reports/enrolments' },
     { label: 'Booking Report', href: '/admin/reports/bookings' },

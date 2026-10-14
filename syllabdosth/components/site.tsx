@@ -64,7 +64,14 @@ export async function Nav({ dark = false }: { dark?: boolean }) {
               {[...links, { href: user ? dashboardPathFor(user.profile.role) : '/login', label: user ? 'Dashboard' : 'Log in' }].map((l) => (
                 <Link key={l.href} href={l.href} className="block rounded-[4px] px-3 py-3 font-display text-[13px] font-medium uppercase tracking-[0.14em] text-ink hover:bg-white/70">{l.label}</Link>
               ))}
-              <Link href="/courses" className="btn-primary mt-2 w-full">Explore courses</Link>
+             <div className="flex gap-3 mt-2">
+  <Link href="/courses" className="btn-primary">
+    Explore courses →
+  </Link>
+  <Link href="/franchise" className="btn-primary">
+    Franchise →
+  </Link>
+</div>
             </div>
           </details>
         </div>
