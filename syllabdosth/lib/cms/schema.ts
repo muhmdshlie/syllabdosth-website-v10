@@ -178,7 +178,7 @@ const branding: ContentDef = {
 const seo: ContentDef = {
   key: 'settings.seo', title: 'SEO', kind: 'settings', description: 'How the site appears on Google and when a link is shared on WhatsApp.',
   fields: [t('title', 'Site title', { full: true }), ta('description', 'Description (under 160 characters)', 3, { max: 300 }), t('keywords', 'Keywords (comma separated)', { full: true }), img('ogImage', 'Share image (1200×630)')],
-  defaults: { title: 'Syllabdosth — Learn a craft. Book a master.', description: '200+ certified courses in tailoring, beautician, nail art, mehandi, embroidery and saree draping — plus verified professionals you can book in Bengaluru.', keywords: '', ogImage: '' },
+  defaults: { title: 'Syllabdosth | Certified Skill Courses & Professional Services', description: 'Certified skill courses in tailoring, nail art, mehndi, saree draping and embroidery. Learn new skills and book verified professionals on Syllabdosth.', keywords: '', ogImage: '' },
 };
 
 const announcement: ContentDef = {
