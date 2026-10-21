@@ -79,7 +79,7 @@ const home: ContentDef = {
       cardEyebrow: 'Book a certified pro', cardTitle1: 'Love the work?', cardTitle2: 'Book the artist',
     },
     faculty: { eyebrow: 'Faculty', title: 'Taught by working professionals', sub: 'Faculty who still take bookings themselves — not full-time trainers reading a syllabus.' },
-    testimonials: { eyebrow: 'Success stories', title: 'Learners who now run their own bookings', note: 'Sample testimonials and photos — replace with real learner quotes before launch.' },
+    testimonials: { eyebrow: 'Success stories', title: 'Learners who now run their own bookings', note: '' },
     faq: { eyebrow: 'FAQ', title: 'Questions, answered', sub: "Can't find your answer? We reply on WhatsApp within the day." },
     blog: { eyebrow: 'Journal', title: 'Career tips and craft know-how' },
     closing: {
