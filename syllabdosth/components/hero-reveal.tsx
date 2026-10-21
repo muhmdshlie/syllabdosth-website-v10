@@ -7,6 +7,7 @@
 import Link from 'next/link';
 import { useEffect, useRef } from 'react';
 import { DepthPhoto } from './depth-photo';
+import { DiwaliDecor } from './diwali-decor';
 import { Words } from './motion';
 
 export type HeroCopy = { topLeft: string; topRight: string; title1: string; title2: string; primaryCta: string; secondaryCta: string; second1: string; second2: string };
@@ -17,39 +18,6 @@ type Props = {
 };
 
 const lines = (t: string) => t.split('\n').map((l, i) => <span key={i}>{i > 0 && <br />}{l}</span>);
-
-/** Festive Diwali diya — a small gold oil lamp with a flickering flame (decorative only). */
-function Diya() {
-  return (
-    <span className="diya anim-fade-up delay-2" aria-hidden>
-      <svg viewBox="0 0 64 64" fill="none">
-        <defs>
-          <radialGradient id="diya-glow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#F5D98B" stopOpacity="0.55" />
-            <stop offset="100%" stopColor="#D6B36A" stopOpacity="0" />
-          </radialGradient>
-          <linearGradient id="diya-flame" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#FFF4D6" />
-            <stop offset="55%" stopColor="#F5D98B" />
-            <stop offset="100%" stopColor="#D6B36A" />
-          </linearGradient>
-          <linearGradient id="diya-bowl" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#E6C988" />
-            <stop offset="100%" stopColor="#9C7A3C" />
-          </linearGradient>
-        </defs>
-        <circle className="diya-halo" cx="32" cy="24" r="18" fill="url(#diya-glow)" />
-        <path className="diya-flame" d="M32 10c3.6 5 5.6 8.6 5.6 12.2a5.6 5.6 0 0 1-11.2 0C26.4 18.6 28.4 15 32 10z" fill="url(#diya-flame)" />
-        <path d="M32 19.5c1.4 2 2.1 3.4 2.1 4.6a2.1 2.1 0 0 1-4.2 0c0-1.2.7-2.6 2.1-4.6z" fill="#FFFDF6" opacity="0.9" />
-        <path d="M10 34h44c-1.6 9-10.4 15-22 15S11.6 43 10 34z" fill="url(#diya-bowl)" />
-        <path d="M10 34c4 2.6 12.4 4 22 4s18-1.4 22-4" stroke="#F5D98B" strokeWidth="1.2" strokeLinecap="round" />
-        <path d="M54 34l5-3.5-2 5.5" fill="#D6B36A" />
-        <path d="M22 41.5c3 1.4 6.4 2 10 2s7-.6 10-2" stroke="#F5D98B" strokeOpacity="0.55" strokeWidth="0.9" strokeLinecap="round" strokeDasharray="0.1 3" />
-        <ellipse cx="32" cy="52.5" rx="12" ry="1.6" fill="#D6B36A" opacity="0.25" />
-      </svg>
-    </span>
-  );
-}
 
 export function HeroReveal({ photo, stats, copy }: Props) {
   const wrap = useRef<HTMLElement>(null);
@@ -93,11 +61,13 @@ export function HeroReveal({ photo, stats, copy }: Props) {
           <span aria-hidden className="photo-glass" />
         </div>
 
+        {/* Diwali: diyas and sparkles in the black areas beside the photo (behind the copy) */}
+        <DiwaliDecor />
+
         {/* first screen: headline */}
         <div className="hero-copy container-page relative flex h-full flex-col justify-between pb-10 pt-32 lg:pb-12 lg:pt-36">
           <div className="flex items-start justify-between gap-6">
             <p className="micro anim-fade-up max-w-[180px] text-ink-dark-muted">{lines(copy.topLeft)}</p>
-            <Diya />
             <p className="micro anim-fade-up delay-1 hidden max-w-[220px] text-right text-ink-dark-muted sm:block">{lines(copy.topRight)}</p>
           </div>
 

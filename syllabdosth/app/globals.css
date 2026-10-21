@@ -216,19 +216,69 @@ html.lenis, html.lenis body { height: auto; }
   .hero-photo-inner { --h0: 0.885; --hy: 28.5svh; }
   .hero-photo { clip-path: inset(calc((1 - var(--s, 0)) * 30%) calc((1 - var(--s, 0)) * 6%) calc((1 - var(--s, 0)) * 34%) calc((1 - var(--s, 0)) * 6%) round calc((1 - var(--s, 0)) * 6px)); }
 }
-/* Diwali diya in the hero's top row — centred on sm+, right-aligned on phones (topRight is hidden there) */
-.diya { display: block; flex: none; width: 44px; height: 44px; margin-top: -6px; pointer-events: none; }
-.diya svg { width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 0 10px rgba(214, 179, 106, 0.45)); }
-.diya-flame { transform-box: fill-box; transform-origin: 50% 100%; animation: sd-diya-flicker 2.6s ease-in-out infinite; }
-.diya-halo { animation: sd-diya-glow 2.6s ease-in-out infinite; }
-@media (min-width: 640px) { .diya { width: 52px; height: 52px; } }
-@media (min-width: 1024px) { .diya { width: 60px; height: 60px; } }
-@keyframes sd-diya-flicker {
-  0%, 100% { transform: scale(1, 1) rotate(0deg); }
-  30% { transform: scale(0.94, 1.06) rotate(-2deg); }
-  60% { transform: scale(1.04, 0.96) rotate(1.5deg); }
+/* Diwali side decorations (components/diwali-decor.tsx) — boxes sit in the black areas beside the photo frame
+   (27% each side), below the corner text and above the headline; mobile gets one small cluster in the top band. */
+.dw { position: absolute; inset: 0; pointer-events: none; --k: 1; opacity: calc(1 - var(--s, 0) * 2.2); }
+.dw-side { position: absolute; top: max(25%, 200px); bottom: 400px; width: 23%; animation: dw-in 2s ease 0.6s both; }
+.dw-left { left: 2%; }
+.dw-right { right: 2%; }
+.dw-item { position: absolute; --sz: calc(var(--b) * var(--k)); width: var(--sz); height: var(--sz); left: calc((100% - var(--sz)) * var(--x)); top: calc((100% - var(--sz)) * var(--y)); }
+
+.dw-diya svg { position: relative; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.6)); }
+.dw-diya-halo {
+  position: absolute; left: 50%; top: 34%; width: 170%; aspect-ratio: 1; translate: -50% -50%; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 196, 102, 0.5) 0%, rgba(232, 116, 42, 0.18) 35%, rgba(214, 179, 106, 0) 68%);
+  animation: dw-halo 3.4s ease-in-out var(--d) infinite;
 }
-@keyframes sd-diya-glow { 0%, 100% { opacity: 0.85; } 50% { opacity: 1; } }
+.dw-flame { transform-box: fill-box; transform-origin: 50% 100%; animation: dw-flicker 3.1s ease-in-out var(--d) infinite; filter: drop-shadow(0 0 6px rgba(255, 190, 90, 0.9)); }
+.dw-flame-inner { transform-box: fill-box; transform-origin: 50% 100%; animation: dw-flicker-in 1.9s ease-in-out var(--d) infinite; }
+
+.dw-glow { border-radius: 50%; background: radial-gradient(circle, rgba(232, 140, 50, 0.16) 0%, rgba(214, 179, 106, 0.06) 45%, transparent 70%); animation: dw-breathe 7s ease-in-out infinite; }
+.dw-sparkle { opacity: 0.7; filter: drop-shadow(0 0 4px rgba(245, 217, 139, 0.9)); animation: dw-twinkle 4.2s ease-in-out var(--d) infinite; }
+.dw-particle {
+  position: absolute; bottom: 0; width: calc(3px * var(--k) + 1px); aspect-ratio: 1; border-radius: 50%; opacity: 0;
+  background: #F5D98B; box-shadow: 0 0 6px 1px rgba(255, 190, 90, 0.8);
+  animation: dw-float var(--t) linear var(--d) infinite;
+}
+.dw-string { position: absolute; top: 0; left: 6%; right: 0; height: calc(46px * var(--k)); }
+.dw-string svg { width: 100%; height: 100%; overflow: visible; }
+.dw-bulb {
+  position: absolute; top: calc(5% + var(--sag) * 82.5%); width: calc(6px * var(--k) + 1px); aspect-ratio: 1; translate: -50% -10%; border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #FFF4D6, #F0A848 70%); box-shadow: 0 0 8px 2px rgba(255, 176, 80, 0.55);
+  animation: dw-bulb 2.4s ease-in-out var(--d) infinite;
+}
+
+@media (min-width: 768px) and (max-width: 1023px) { .dw { --k: 0.74; } .dw-side { bottom: 360px; } }
+@media (max-width: 767px) {
+  .dw { --k: 0.5; }
+  .dw-left { display: none; }
+  .dw-right { top: 112px; bottom: auto; right: 16px; width: 120px; height: 76px; }
+  .dw-side > :not(.dw-m) { display: none; }
+}
+@media (min-width: 640px) and (max-width: 767px) { .dw-right { right: auto; left: 50%; translate: -50% 0; } }
+@media (max-height: 620px) { .dw { display: none; } }
+
+@keyframes dw-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes dw-flicker {
+  0%, 100% { transform: scale(1, 1) skewX(0deg); }
+  18% { transform: scale(0.96, 1.05) skewX(-2deg); }
+  37% { transform: scale(1.03, 0.97) skewX(1.5deg); }
+  52% { transform: scale(0.98, 1.07) skewX(-1deg); }
+  71% { transform: scale(1.02, 0.95) skewX(2deg); }
+  86% { transform: scale(0.97, 1.03) skewX(-0.5deg); }
+}
+@keyframes dw-flicker-in { 0%, 100% { transform: scale(1, 1); opacity: 1; } 40% { transform: scale(0.92, 1.08); opacity: 0.9; } 70% { transform: scale(1.05, 0.94); } }
+@keyframes dw-halo { 0%, 100% { opacity: 0.8; scale: 1; } 30% { opacity: 1; scale: 1.06; } 60% { opacity: 0.72; scale: 0.97; } }
+@keyframes dw-breathe { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; } }
+@keyframes dw-twinkle { 0%, 100% { opacity: 0.15; scale: 0.6; rotate: 0deg; } 45% { opacity: 0.95; scale: 1; rotate: 20deg; } 70% { opacity: 0.4; scale: 0.8; } }
+@keyframes dw-float {
+  0% { opacity: 0; transform: translate(0, 0); }
+  15% { opacity: 0.9; }
+  80% { opacity: 0.5; }
+  100% { opacity: 0; transform: translate(var(--dx), calc(-180px * var(--k))); }
+}
+@keyframes dw-bulb { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+@media (prefers-reduced-motion: reduce) { .dw-side, .dw-side * { animation: none !important; } .dw-particle { display: none; } }
 @media (prefers-reduced-motion: reduce) { .hero-reveal { height: auto; } .hero-reveal > div { position: relative; } .hero-second, .hero-scroll { display: none; } }
 
 /* ============================================================ split-screen story (components/craft-story.tsx) */
