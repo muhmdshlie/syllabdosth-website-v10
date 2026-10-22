@@ -10,7 +10,7 @@ import { facultyPhoto } from '@/lib/images';
 import { activeOffers, approvedReviews, lessonsForCourse } from '@/lib/lms';
 import { promoEnds, promoFor, promoMap } from '@/lib/offers';
 
-type CoursePageText = { course: { feeNote: string; guarantee: string; moduleNote: string } };
+type CoursePageText = { course: { feeNote: string; moduleNote: string } };
 const KIND: Record<string, string> = { video: 'Video', reading: 'Reading', live: 'Live', download: 'Download' };
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
@@ -156,7 +156,6 @@ export default async function CoursePage({ params }: { params: { slug: string } 
                   <div key={k} className="flex justify-between gap-4 py-3"><dt className="text-ink-soft">{k}</dt><dd className="text-right font-semibold">{v}</dd></div>
                 ))}
               </dl>
-              {t.guarantee && <p className="mt-4 text-[12px] text-ink-soft">{t.guarantee}</p>}
             </div>
           </aside>
         </div>

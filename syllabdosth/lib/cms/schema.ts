@@ -121,14 +121,14 @@ const listingPages: ContentDef = {
   key: 'page.listings', title: 'Courses, services & blog pages', kind: 'page', viewPath: '/courses',
   fields: [
     group('courses', 'Courses page', [t('title', 'Heading', { full: true }), ta('sub', 'Text under the heading', 2)]),
-    group('course', 'Single course page', [t('feeNote', 'Note under the fee', { full: true }), t('guarantee', 'Guarantee line', { full: true }), ta('moduleNote', 'Text inside each curriculum module', 2)]),
+    group('course', 'Single course page', [t('feeNote', 'Note under the fee', { full: true }), ta('moduleNote', 'Text inside each curriculum module', 2)]),
     group('services', 'Services page', [t('title', 'Heading', { full: true }), ta('sub', 'Text under the heading', 3), t('groupTitle', 'Group box heading', { full: true }), t('groupText', 'Group box text', { full: true })]),
     group('blog', 'Blog page', [t('title', 'Heading', { full: true }), t('sub', 'Text under the heading', { full: true })]),
     group('help', 'Help & FAQ page', [t('title', 'Heading', { full: true }), t('sub', 'Text under the heading', { full: true })]),
   ],
   defaults: {
     courses: { title: 'Courses worth certifying in', sub: 'Short and long programmes taught by working professionals. Every course ends with an industry-recognised certificate.' },
-    course: { feeNote: 'EMI and scholarships available — ask when we call.', guarantee: '', moduleNote: 'Live sessions, demonstrations and graded practice work for this module. Detailed lesson plan shared after enrolment.' },
+    course: { feeNote: 'EMI and scholarships available — ask when we call.', moduleNote: 'Live sessions, demonstrations and graded practice work for this module. Detailed lesson plan shared after enrolment.' },
     services: { title: 'Book a verified professional', sub: 'Certified professionals for beauty, tailoring, mehndi, draping and creative services. Choose a service, check the starting price and send a request — you pay nothing until the professional confirms.', groupTitle: 'Booking for a group or an event?', groupText: 'Bridal parties, office wellness days, college fests — we’ll plan the artists for you.' },
     blog: { title: 'From the blog', sub: 'Career tips and craft know-how from our faculty and team.' },
     help: { title: 'Help & FAQ', sub: '' },
