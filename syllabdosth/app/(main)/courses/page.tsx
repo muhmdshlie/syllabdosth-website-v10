@@ -94,7 +94,7 @@ export default async function CoursesPage({ searchParams }: { searchParams: Cour
             </form>
           </aside>
           <div>
-            <p className="mb-5 text-[14px] font-semibold text-ink-deep" aria-live="polite">{courses.length} {courses.length === 1 ? 'course' : 'courses'}</p>
+            <p className="mb-5 text-[14px] font-semibold text-ink-deep" aria-live="polite" data-search-results={searchParams.q ? courses.length : undefined}>{courses.length} {courses.length === 1 ? 'course' : 'courses'}</p>
             {courses.length ? (
               <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
                 {courses.map((c, i) => <div key={c.id} data-reveal style={{ "--d": `${(i % 3) * 0.08}s` } as React.CSSProperties}><CourseCard course={c} promo={promos.get(c.id)} category={categories.find((x) => x.slug === c.category_slug)} /></div>)}

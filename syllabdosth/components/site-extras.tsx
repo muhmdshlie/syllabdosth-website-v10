@@ -1,13 +1,13 @@
 import { headers } from 'next/headers';
-import Script from 'next/script';
 import type { ReactNode } from 'react';
+import { ConsentManager } from '@/components/consent';
 import { getCurrentUser } from '@/lib/auth';
 import { getContent, getSiteSettings } from '@/lib/cms/content';
 
 type Addons = { whatsapp: { enabled: boolean; message: string }; analytics: { enabled: boolean; id: string }; pixel: { enabled: boolean; id: string } };
 type Maintenance = { enabled: boolean; title: string; message: string };
 
-/** Public-site add-ons from Admin → Addon: WhatsApp button, Google Analytics, Meta Pixel. */
+/** Public-site add-ons from Admin → Addon: WhatsApp button, Google Analytics, Meta Pixel (the last two only with cookie consent). */
 export async function SiteExtras() {
   const [a, site] = await Promise.all([getContent<Addons>('settings.addons'), getSiteSettings()]);
   const ga = a.analytics.enabled && /^G-[A-Z0-9]+$/i.test(a.analytics.id) ? a.analytics.id : '';
@@ -21,13 +21,8 @@ export async function SiteExtras() {
           <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.3 2.2 2.2 0 0 0 .1-1.3c0-.1-.2-.2-.4-.3Z" /></svg>
         </a>
       )}
-      {ga && (
-        <>
-          <Script src={`https://www.googletagmanager.com/gtag/js?id=${ga}`} strategy="afterInteractive" />
-          <Script id="ga" strategy="afterInteractive">{`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','${ga}');`}</Script>
-        </>
-      )}
-      {px && <Script id="fb-pixel" strategy="afterInteractive">{`!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','${px}');fbq('track','PageView');`}</Script>}
+      {/* Cookie banner; first-party analytics, Google Analytics and the Pixel load only after consent. */}
+      <ConsentManager ga={ga} pixel={px} />
     </>
   );
 }

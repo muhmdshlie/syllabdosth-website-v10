@@ -12,7 +12,7 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
 export default function CmsPage({ params, searchParams }: { params: { slug: string }; searchParams: { reset?: string } }) {
   const key = contentKeyFromSlug('page', params.slug);
   if (!CONTENT[key] || CONTENT[key].kind !== 'page') notFound();
-  const legal = params.slug === 'terms' || params.slug === 'privacy';
+  const legal = ['terms', 'privacy', 'cookies'].includes(params.slug);
   return (
     <ContentPage contentKey={key} crumbs={[{ href: '/admin/cms', label: 'CMS' }, { label: CONTENT[key].title }]} back={`/admin/cms/${params.slug}`} reset={!!searchParams.reset}>
       {legal ? (
@@ -20,6 +20,7 @@ export default function CmsPage({ params, searchParams }: { params: { slug: stri
           <div className="flex flex-col gap-2">
             <Link href="/admin/cms/terms" className={`adm-btn-outline ${params.slug === 'terms' ? '!border-adm-green !text-adm-green' : ''}`}>Terms of use</Link>
             <Link href="/admin/cms/privacy" className={`adm-btn-outline ${params.slug === 'privacy' ? '!border-adm-green !text-adm-green' : ''}`}>Privacy policy</Link>
+            <Link href="/admin/cms/cookies" className={`adm-btn-outline ${params.slug === 'cookies' ? '!border-adm-green !text-adm-green' : ''}`}>Cookie policy</Link>
           </div>
         </Card>
       ) : undefined}

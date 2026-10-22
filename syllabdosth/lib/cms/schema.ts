@@ -142,7 +142,7 @@ const footer: ContentDef = {
 };
 
 const legal = (key: string, title: string, body: string[]): ContentDef => ({
-  key, title, kind: 'page', viewPath: key === 'page.terms' ? '/legal/terms' : '/legal/privacy',
+  key, title, kind: 'page', viewPath: `/legal/${key.slice('page.'.length)}`,
   fields: [t('title', 'Heading', { full: true }), ta('body', 'Text (a blank line starts a new paragraph)', 18)],
   defaults: { title, body: body.join('\n\n') },
 });
@@ -240,8 +240,25 @@ const addons: ContentDef = {
 
 export const CONTENT_DEFS: ContentDef[] = [
   home, about, contact, listingPages, footer,
-  legal('page.terms', 'Terms of use', ['Placeholder — replace with your lawyer-approved terms before launch.', 'Covers course enrolment, booking requests between customers and independent professionals, cancellations, and acceptable use.']),
-  legal('page.privacy', 'Privacy policy', ['Placeholder — replace with your final privacy policy before launch.', 'We collect your name, phone, email and booking details only to provide courses and bookings, and never sell your data.']),
+  legal('page.terms', 'Terms of use', [
+    'Placeholder — replace with your lawyer-approved terms before launch.',
+    'Covers course enrolment, booking requests between customers and independent professionals, cancellations, and acceptable use.',
+    'Cookies and analytics\nThe website uses necessary cookies to work, for example to keep you signed in. Optional analytics cookies are used only if you allow them. Rejecting optional cookies does not limit what you can do on the website. How we use cookies and analytics, and how to change your choice at any time, is explained in our Privacy policy and Cookie policy.',
+  ]),
+  legal('page.privacy', 'Privacy policy', [
+    'Placeholder — replace with your final privacy policy before launch.',
+    'We collect your name, phone, email and booking details only to provide courses and bookings, and never sell your data.',
+    'What we collect\n• When you create an account or log in (with email and password, a phone code or Google): your name, email address and/or phone number.\n• When you send a course enquiry, booking request, group enquiry, application or contact message: the details you enter, such as your name, phone, email, city, the course or service you chose, preferred dates and your message.\n• We do not take card or bank payments on the website. Course fees are confirmed by our team when they call you.',
+    'How we use it\nTo reply to your enquiry, arrange courses and bookings, run your account and dashboard, issue and verify certificates, send you emails about your enquiry or booking, and keep the website secure.',
+    'Necessary cookies\nThese keep you signed in (cookies whose names start with sb-) and remember your cookie choice (sd_consent, kept for 6 months). They are always on because the website needs them to work, and they are not used to track you.',
+    'Optional website analytics\nOnly if you accept analytics cookies, we set a random ID in your browser (sd_vid, kept for up to 12 months) and record which pages and courses are viewed, words searched on the Courses page, your device type (mobile, tablet or desktop) and the website or campaign link that brought you here.\nThe ID is not linked to your account. We do not record your IP address, name, email, phone number, passwords, payment details or anything you type into forms. Search words that look like a phone number or email address are never shown.\nOnly our admin team can see the results, and only as totals, never one person’s activity. Analytics records are deleted after 13 months.\nIf you reject analytics cookies, nothing about your visit is recorded for analytics and the website works normally.',
+    'Advertising and third-party trackers\nWe do not currently use Google Analytics, the Meta (Facebook) Pixel or other advertising trackers. If we add any, they will be listed in our Cookie policy and will only load after you allow them.',
+    'Changing your choice\nUse “Cookie settings” at the bottom of any page, or the button on the Cookie policy page, to accept or reject optional cookies at any time. When you withdraw consent, analytics stops and the analytics ID is deleted from your browser. Records made before that are not linked to your name or account and are deleted on the normal 13-month schedule. You can also clear cookies in your browser settings.',
+    'Who helps us run the website\nOur website, database and sign-in run on service providers that process data on our behalf. We send emails through an email service, and sign-in codes for phone login are sent by SMS through our sign-in provider.',
+    'Your requests\nTo ask about, correct or delete the personal details we hold about you, contact us through the Contact page.',
+    'Changes to this policy\nWe may update this policy when the website changes. The latest version is always on this page.',
+  ]),
+  legal('page.cookies', 'Cookie policy', ['This page explains the cookies Syllabdosth uses and how to change your choice. You can change or withdraw your consent at any time with the Cookie settings button below, or the Cookie settings link at the bottom of every page.', 'Necessary cookies (always on)\n• Sign-in cookies (names starting with sb-) keep you logged in.\n• sd_consent remembers your cookie choice for 6 months.\nThe website needs these to work. They are not used to track you.', 'Analytics cookies (only if you allow them)\n• sd_vid is a random ID, kept for up to 12 months, so we can count unique and returning visitors.\nWith it we record which pages and courses are viewed, words searched on the Courses page, the type of device (mobile, tablet or desktop) and the website that sent you here. We do not record your name, email, phone number, IP address, passwords, payment details or anything you type into forms, and the ID is not linked to your account. Only our admin team sees the totals, never one person’s activity, and the records are deleted after 13 months.', 'Third-party and marketing cookies (only if you allow them)\nWe do not currently use marketing or advertising cookies, or third-party analytics. If we add Google Analytics (analytics) or the Meta Pixel (marketing), they will be listed here and will only load after you allow that type of cookie.', 'If you reject optional cookies, the website works normally and nothing about your visit is recorded for analytics. For questions about your data, use the Contact page.']),
   general, branding, seo, announcement, maintenance, email, sms, addons,
 ];
 export const CONTENT: Record<string, ContentDef> = Object.fromEntries(CONTENT_DEFS.map((d) => [d.key, d]));

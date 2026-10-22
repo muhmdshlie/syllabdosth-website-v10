@@ -62,6 +62,7 @@ export const ADMIN_NAV: NavItem[] = [
     { label: 'Reconciliation', href: '/admin/wallet/reconciliation' },
   ] },
   { label: 'Reports', icon: 'reports', children: [
+    { label: 'Website Analytics', href: '/admin/analytics' },
     { label: 'Enrolment Report', href: '/admin/reports/enrolments' },
     { label: 'Booking Report', href: '/admin/reports/bookings' },
     { label: 'Course Report', href: '/admin/reports/courses' },

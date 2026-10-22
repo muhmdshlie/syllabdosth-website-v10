@@ -125,6 +125,7 @@ const seeds: Record<string, () => Row[]> = {
     { key: 'live_class_reminder', name: 'Live class reminder', body: 'Reminder: {{title}} starts at {{time}}. Join: {{link}} - Syllabdosth', dlt_template_id: null, enabled: true },
   ],
   activity_log: () => [],
+  analytics_events: () => [],
 };
 
 const g = globalThis as unknown as { __sdTables?: Record<string, Row[]> };

@@ -49,5 +49,6 @@ function toLogin(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|webp|ico)$).*)'],
+  // api/collect (analytics beacon) needs no session refresh, so skip the auth round-trip on every page view.
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|api/collect|.*\\.(?:svg|png|jpg|jpeg|webp|ico)$).*)'],
 };

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { dashboardPathFor, getCurrentUser } from '@/lib/auth';
 import { getContent, getSiteSettings, type SiteSettings } from '@/lib/cms/content';
 import { isDemo } from '@/lib/config';
+import { CookieSettingsButton } from './consent';
 import { MobileMenuCloser } from './motion';
 
 export function Logo({ dark, className = 'h-9 sm:h-10', site }: { dark?: boolean; className?: string; site: SiteSettings }) {
@@ -90,7 +91,7 @@ const footerCols = [
   { h: 'Learn', items: [['All courses', '/courses'], ['Tailoring', '/courses?category=tailoring'], ['Nail art', '/courses?category=nail-art'], ['Mehandi', '/courses?category=mehandi'], ['Saree draping', '/courses?category=saree-draping']] },
   { h: 'Book', items: [['All services', '/services'], ['Bridal makeup', '/services/bridal-makeup'], ['Bridal mehndi', '/services/bridal-mehndi'], ['Group & corporate', '/group-booking']] },
   { h: 'Company', items: [['About', '/about'], ['Blog', '/blog'], ['Apply as faculty', '/apply/faculty'], ['Register as a pro', '/apply/professional']] },
-  { h: 'Support', items: [['Help & FAQ', '/help'], ['Contact us', '/contact'], ['Verify a certificate', '/certificates'], ['Terms', '/legal/terms'], ['Privacy', '/legal/privacy']] },
+  { h: 'Support', items: [['Help & FAQ', '/help'], ['Contact us', '/contact'], ['Verify a certificate', '/certificates'], ['Terms', '/legal/terms'], ['Privacy', '/legal/privacy'], ['Cookie policy', '/legal/cookies']] },
 ];
 
 type FooterContent = { line1: string; line2: string; blurb: string; bigWord: string; bottomNote: string };
@@ -133,7 +134,7 @@ export async function Footer() {
         <p aria-hidden className="select-none overflow-hidden py-10 text-center font-display text-[min(12.5vw,165px)] font-medium uppercase leading-[0.8] tracking-[-0.05em] text-white/[0.06]">{f.bigWord}</p>
         <div className="micro flex flex-col gap-3 text-ink-dark-muted sm:flex-row sm:justify-between">
           <p>© {new Date().getFullYear()} {site.siteName} · All rights reserved</p>
-          
+          <CookieSettingsButton className="micro text-left text-ink-dark-muted underline-offset-2 transition hover:text-white hover:underline" />
         </div>
       </div>
     </footer>
