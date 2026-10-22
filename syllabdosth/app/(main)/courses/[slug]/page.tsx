@@ -1,13 +1,14 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { CourseCard, CourseImage } from '@/components/cards';
+import { CourseCard, CourseImage, PromoBadge, PromoPrice } from '@/components/cards';
 import { Avatar, Breadcrumbs, Check, Section, Tag } from '@/components/ui';
 import { getContent, getSiteSettings } from '@/lib/cms/content';
 import { getCourse, getFaculty, listCategories, relatedCourses } from '@/lib/data';
 import { durationLabel, inr } from '@/lib/format';
 import { facultyPhoto } from '@/lib/images';
 import { activeOffers, approvedReviews, lessonsForCourse } from '@/lib/lms';
+import { promoEnds, promoFor, promoMap } from '@/lib/offers';
 
 type CoursePageText = { course: { feeNote: string; guarantee: string; moduleNote: string } };
 const KIND: Record<string, string> = { video: 'Video', reading: 'Reading', live: 'Live', download: 'Download' };
@@ -20,10 +21,14 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 export default async function CoursePage({ params }: { params: { slug: string } }) {
   const course = await getCourse(params.slug);
   if (!course) notFound();
-  const [categories, faculty, related, site, text, lessons, reviews, offers] = await Promise.all([
+  const [categories, faculty, related, site, text, lessons, reviews, liveOffers] = await Promise.all([
     listCategories(), getFaculty(course.faculty_id), relatedCourses(course), getSiteSettings(), getContent<CoursePageText>('page.listings'),
-    lessonsForCourse(course.id), approvedReviews(course.id), activeOffers(course.id),
+    lessonsForCourse(course.id), approvedReviews(course.id), activeOffers(),
   ]);
+  const promo = promoFor(course, liveOffers);
+  const relatedPromos = promoMap(related, liveOffers);
+  // Site-wide offers and this course's own; the priced one is shown in the price block instead.
+  const offers = liveOffers.filter((o) => (!o.course_id || o.course_id === course.id) && o.id !== promo?.offerId);
   const t = text.course;
   const cat = categories.find((c) => c.slug === course.category_slug);
 
@@ -116,10 +121,27 @@ export default async function CoursePage({ params }: { params: { slug: string } 
           </div>
 
           <aside className="lg:pt-10">
-            <div className="card sticky top-6 !p-7">
-              <p className="text-[13px] text-ink-soft">Coursfeee </p>
-              <p className="mt-1 font-serif text-[36px] font-bold leading-none">{inr(course.price)}</p>
-              
+            <div className="card sticky top-28 !p-7">
+              {promo ? (
+                <>
+                  <PromoBadge promo={promo} />
+                  <p className="mt-4 text-[13px] text-ink-soft">Course fee</p>
+                  <div className="mt-1"><PromoPrice promo={promo} /></div>
+                  {(promo.code || promo.endsOn) && (
+                    <p className="mt-3 text-[12px] text-ink-soft">
+                      {promo.code && <>Code <span className="font-mono font-semibold text-ink">{promo.code}</span></>}
+                      {promo.code && promo.endsOn && ' · '}
+                      {promo.endsOn && `Offer ends ${promoEnds(promo.endsOn)}`}
+                    </p>
+                  )}
+                </>
+              ) : (
+                <>
+                  <p className="text-[13px] text-ink-soft">Course fee</p>
+                  <p className="mt-1 font-serif text-[36px] font-bold leading-none">{inr(course.price)}</p>
+                </>
+              )}
+
               {offers.map((o) => (
                 <div key={o.id} className="mt-4 rounded-[4px] border border-dashed border-noir/30 bg-white/70 px-4 py-3" data-testid="course-offer">
                   <p className="text-[13px] font-semibold">{o.discount_text}</p>
@@ -144,7 +166,7 @@ export default async function CoursePage({ params }: { params: { slug: string } 
         <Section tone="cream">
           <h2 className="h2 mb-8">Related courses</h2>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {related.map((c) => <CourseCard key={c.id} course={c} category={cat} />)}
+            {related.map((c) => <CourseCard key={c.id} course={c} promo={relatedPromos.get(c.id)} category={cat} />)}
           </div>
         </Section>
       )}

@@ -6,7 +6,9 @@ import { z } from 'zod';
 import type { ActionState } from '@/lib/action-state';
 import { getCurrentUser } from '@/lib/auth';
 import * as data from '@/lib/data';
-import { todayIST } from '@/lib/format';
+import { inr, todayIST } from '@/lib/format';
+import { activeOffers } from '@/lib/lms';
+import { promoFor } from '@/lib/offers';
 import { notifyEnquiry } from '@/lib/mailer';
 
 const phone = z
@@ -99,7 +101,10 @@ export async function enrollAction(_: ActionState, fd: FormData): Promise<Action
   const user = await getCurrentUser();
   await data.createEnrollment({ ...parsed.data, user_id: user?.id ?? null });
   const e = parsed.data;
-  await notifyEnquiry('Course enquiry', { name: e.name, phone: e.phone, email: e.email, course: course.title, details: `${course.title} · ${e.mode}${e.message ? ` · ${e.message}` : ''}` }, 'enrollment_received', e.email);
+  // The fee is worked out here from the database (course price + live offer), never taken from the form.
+  const promo = promoFor(course, await activeOffers(course.id));
+  const fee = promo ? `Fee ${inr(promo.price)} with offer “${promo.title}” (M.R.P. ${inr(promo.original)})` : `Fee ${inr(course.price)}`;
+  await notifyEnquiry('Course enquiry', { name: e.name, phone: e.phone, email: e.email, course: course.title, details: `${course.title} · ${e.mode} · ${fee}${e.message ? ` · ${e.message}` : ''}` }, 'enrollment_received', e.email);
   redirect(`/courses/${course.slug}/enroll/sent`);
 }
 

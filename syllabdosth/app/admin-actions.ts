@@ -12,6 +12,7 @@ import { getContent, resetContent, saveContent } from '@/lib/cms/content';
 import { CONTENT } from '@/lib/cms/schema';
 import { isDemo } from '@/lib/config';
 import * as data from '@/lib/data';
+import { inr } from '@/lib/format';
 import { sendRaw, sendTemplate } from '@/lib/mailer';
 import { deleteMedia, listMedia, updateMediaAlt, uploadMedia } from '@/lib/media';
 import type { MediaItem, Profile, Role, TicketMessage } from '@/lib/types';
@@ -36,6 +37,18 @@ async function beforeSave(resource: string, id: string | null, values: Row, befo
   if (resource === 'staff' && before?.user_id === me.id && values.user_id !== me.id) return 'You can’t remove your own admin access.';
   if (resource === 'tickets') values.updated_at = new Date().toISOString();
   if (resource === 'quizzes' && Array.isArray(values.questions) && values.published && values.questions.length === 0) return 'Add at least one question before publishing the quiz.';
+  if (resource === 'offers') return checkOffer({ ...(before ?? {}), ...values });
+  return null;
+}
+
+/** An offer price must belong to one course and undercut that course's real fee; dates must be in order. */
+async function checkOffer(o: Row): Promise<string | null> {
+  if (o.starts_on && o.valid_until && String(o.starts_on) > String(o.valid_until)) return 'Starts on must be on or before the last day.';
+  if (o.offer_price === null || o.offer_price === undefined) return null;
+  if (!o.course_id) return 'An offer price needs a course — choose one under “Only for this course”.';
+  const course = await data.getCourseById(String(o.course_id));
+  if (!course) return 'That course no longer exists.';
+  if (!(Number(o.offer_price) < course.price)) return `Offer price must be lower than the course fee (${inr(course.price)}).`;
   return null;
 }
 

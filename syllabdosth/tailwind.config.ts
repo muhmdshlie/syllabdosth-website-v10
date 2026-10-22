@@ -18,6 +18,8 @@ const config: Config = {
         pending: '#FFF4D6',
         muted: '#ECEAE4',
         line: '#DDDAD2',
+        // Promo pricing accent (% off, deal badges) — used sparingly against the black & off-white palette.
+        deal: { DEFAULT: '#B42318', soft: '#FBE9E7' },
         // Admin panel (same look as the previous LMS admin)
         adm: {
           side: '#13121C', side2: '#1C1A28', text: '#1F2937', muted: '#6B7280', line: '#E4ECEA', bg: '#F3FAF8',

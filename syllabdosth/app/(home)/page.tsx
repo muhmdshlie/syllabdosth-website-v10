@@ -13,7 +13,8 @@ import { getContent } from '@/lib/cms/content';
 import { CONTENT, DEFAULT_HERO_PHOTO, imageFallback } from '@/lib/cms/schema';
 import { featuredCourses, listBlog, listCategories, listFaculty, listServices } from '@/lib/data';
 import { heroPhotos, type StoryScene } from '@/lib/images';
-import { listFaqs, listTestimonials } from '@/lib/lms';
+import { activeOffers, listFaqs, listTestimonials } from '@/lib/lms';
+import { promoMap } from '@/lib/offers';
 
 type Head = { eyebrow: string; title: string; sub?: string };
 type Img = { image: string; alt?: string };
@@ -31,9 +32,10 @@ type Home = {
 };
 
 export default async function HomePage() {
-  const [c, courses, categories, services, faculty, posts, faqs, testimonials] = await Promise.all([
-    getContent<Home>('page.home'), featuredCourses(), listCategories(), listServices(), listFaculty(), listBlog(), listFaqs(), listTestimonials(),
+  const [c, courses, categories, services, faculty, posts, faqs, testimonials, offers] = await Promise.all([
+    getContent<Home>('page.home'), featuredCourses(), listCategories(), listServices(), listFaculty(), listBlog(), listFaqs(), listTestimonials(), activeOffers(),
   ]);
+  const promos = promoMap(courses, offers);
   const cat = (slug: string) => categories.find((x) => x.slug === slug);
   const d = CONTENT['page.home'].defaults as unknown as Home;
   // Hero photo from the CMS; the 3D depth map only fits the original photo.
@@ -64,7 +66,7 @@ export default async function HomePage() {
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {courses.map((co, i) => (
             <div key={co.id} data-reveal style={{ '--d': `${(i % 4) * 0.08}s` } as React.CSSProperties}>
-              <CourseCard course={co} category={cat(co.category_slug)} />
+              <CourseCard course={co} promo={promos.get(co.id)} category={cat(co.category_slug)} />
             </div>
           ))}
         </div>

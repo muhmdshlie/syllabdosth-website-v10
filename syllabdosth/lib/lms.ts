@@ -2,6 +2,7 @@ import 'server-only';
 /** Reads for the public site and the learner / faculty dashboards (FAQs, lessons, quizzes, tickets…). */
 import { allRecords, createRecord, getRecord, updateRecord } from './admin/crud';
 import { RESOURCES } from './admin/resources';
+import { offerIsLive } from './offers';
 import type { Row } from './admin/types';
 import type {
   AppNotification, Assignment, Certificate, FaqRow, LiveClass, Lesson, Offer, Profile, Quiz, Review, Submission, Testimonial, Ticket, TicketMessage,
@@ -28,8 +29,8 @@ export async function approvedReviews(courseId: string): Promise<Review[]> {
 }
 export async function activeOffers(courseId?: string): Promise<Offer[]> {
   const rows = (await safe(allRecords(R.offers, { filters: { active: 'true' } }), [] as Row[])) as unknown as Offer[];
-  const today = new Date().toISOString().slice(0, 10);
-  return rows.filter((o) => (!o.valid_until || o.valid_until >= today) && (!o.course_id || o.course_id === courseId));
+  // No course → every live offer (listings); with a course → site-wide offers plus that course's own.
+  return rows.filter((o) => offerIsLive(o) && (courseId === undefined || !o.course_id || o.course_id === courseId));
 }
 export async function certificateByCode(code: string): Promise<Certificate | null> {
   const clean = code.trim().toUpperCase().replace(/[^A-Z0-9-]/g, '');

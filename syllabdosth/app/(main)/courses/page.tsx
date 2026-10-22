@@ -6,6 +6,8 @@ import { listCategories, listCourses, type CourseFilter } from '@/lib/data';
 import { Photo } from '@/components/motion';
 import { categoryPhoto } from '@/lib/images';
 import { getContent } from '@/lib/cms/content';
+import { activeOffers } from '@/lib/lms';
+import { promoEnds, promoMap } from '@/lib/offers';
 
 export const metadata: Metadata = { title: 'Courses', description: 'Certified courses in tailoring, beautician, nail art, mehandi, embroidery and saree draping.' };
 
@@ -15,8 +17,17 @@ const prices = [['', 'Any price'], ['0-2999', 'Under ₹3,000'], ['3000-9999', '
 const sorts = [['', 'Recommended'], ['popular', 'Most popular'], ['price-asc', 'Price: low to high'], ['price-desc', 'Price: high to low']];
 
 export default async function CoursesPage({ searchParams }: { searchParams: CourseFilter }) {
-  const [categories, courses, pages] = await Promise.all([listCategories(), listCourses(searchParams), getContent<{ courses: { title: string; sub: string } }>('page.listings')]);
+  const [categories, courses, pages, offers, allCourses] = await Promise.all([
+    listCategories(), listCourses(searchParams), getContent<{ courses: { title: string; sub: string } }>('page.listings'), activeOffers(), listCourses({}),
+  ]);
   const active = categories.find((c) => c.slug === searchParams.category);
+  const promos = promoMap(allCourses, offers);
+  // Special offers: every live, priced promo (within the chosen category), deepest discount first.
+  const deals = allCourses
+    .filter((c) => promos.has(c.id) && (!active || c.category_slug === active.slug))
+    .sort((a, b) => promos.get(b.id)!.percent - promos.get(a.id)!.percent)
+    .slice(0, 4);
+  const soonestEnd = deals.map((c) => promos.get(c.id)!.endsOn).filter((d): d is string => !!d).sort()[0];
   const filtering = Boolean(searchParams.q || searchParams.level || searchParams.duration || searchParams.price || searchParams.sort);
   const qs = (patch: Partial<CourseFilter>) => {
     const p = new URLSearchParams(Object.entries({ ...searchParams, ...patch }).filter(([, v]) => v) as [string, string][]);
@@ -40,6 +51,25 @@ export default async function CoursesPage({ searchParams }: { searchParams: Cour
           ))}
         </div>
       </Section>
+
+      {deals.length > 0 && (
+        <section className="bg-paper pb-12" aria-labelledby="special-offers" data-testid="special-offers">
+          <div className="container-page">
+            <div className="rounded-card border border-deal/20 bg-deal-soft/60 p-4 sm:p-6 lg:p-8">
+              <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="eyebrow text-deal">Limited-time deals</p>
+                  <h2 id="special-offers" className="h2 mt-2">Special offers</h2>
+                </div>
+                {soonestEnd && <p className="text-[13px] font-semibold text-ink-deep">Offers end as early as {promoEnds(soonestEnd)}</p>}
+              </div>
+              <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+                {deals.map((c) => <CourseCard key={c.id} course={c} promo={promos.get(c.id)} category={categories.find((x) => x.slug === c.category_slug)} />)}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       <section className="bg-paper pb-24">
         <div className="container-page grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)]">
@@ -67,7 +97,7 @@ export default async function CoursesPage({ searchParams }: { searchParams: Cour
             <p className="mb-5 text-[14px] font-semibold text-ink-deep" aria-live="polite">{courses.length} {courses.length === 1 ? 'course' : 'courses'}</p>
             {courses.length ? (
               <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-                {courses.map((c, i) => <div key={c.id} data-reveal style={{ "--d": `${(i % 3) * 0.08}s` } as React.CSSProperties}><CourseCard course={c} category={categories.find((x) => x.slug === c.category_slug)} /></div>)}
+                {courses.map((c, i) => <div key={c.id} data-reveal style={{ "--d": `${(i % 3) * 0.08}s` } as React.CSSProperties}><CourseCard course={c} promo={promos.get(c.id)} category={categories.find((x) => x.slug === c.category_slug)} /></div>)}
               </div>
             ) : (
               <Empty title="No courses match these filters" text="Try a different level or price range." action={<Link href="/courses" className="btn-primary">Reset filters</Link>} />

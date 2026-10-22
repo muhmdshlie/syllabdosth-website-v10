@@ -181,5 +181,9 @@ export type TicketMessage = { from: 'user' | 'admin'; name: string; text: string
 export type Ticket = { id: string; user_id: string | null; name: string; email: string | null; phone: string | null; subject: string; category: string; priority: 'low' | 'normal' | 'high' | 'urgent'; status: 'open' | 'in_progress' | 'resolved' | 'closed'; messages: TicketMessage[]; created_at: string; updated_at: string };
 export type FaqRow = { id: string; question: string; answer: string; category: string; sort: number; published: boolean };
 export type Testimonial = { id: string; name: string; role: string; quote: string; photo_url: string | null; rating: number; sort: number; published: boolean };
-export type Offer = { id: string; title: string; code: string | null; description: string; discount_text: string; course_id: string | null; valid_until: string | null; active: boolean };
+export type Offer = {
+  id: string; title: string; code: string | null; description: string; discount_text: string; course_id: string | null; valid_until: string | null; active: boolean;
+  // Promo pricing (migration 20261022120000_offer_pricing). Undefined until that migration has run.
+  badge?: string; offer_price?: number | null; starts_on?: string | null;
+};
 export type MediaItem = { id: string; name: string; url: string; path: string | null; mime: string; size_bytes: number; alt: string; folder: string; created_at: string };

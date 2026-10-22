@@ -6,13 +6,17 @@ import { Fact, PageHeader, Section } from '@/components/ui';
 import { getCurrentUser } from '@/lib/auth';
 import { getCourse } from '@/lib/data';
 import { durationLabel, inr } from '@/lib/format';
+import { PromoBadge, PromoPrice } from '@/components/cards';
+import { activeOffers } from '@/lib/lms';
+import { promoEnds, promoFor } from '@/lib/offers';
 
 export const metadata: Metadata = { title: 'Enroll' };
 
 export default async function EnrollPage({ params }: { params: { slug: string } }) {
   const course = await getCourse(params.slug);
   if (!course) notFound();
-  const user = await getCurrentUser();
+  const [user, offers] = await Promise.all([getCurrentUser(), activeOffers(course.id)]);
+  const promo = promoFor(course, offers);
   return (
     <Section>
       <PageHeader crumbs={[{ href: '/courses', label: 'Courses' }, { href: `/courses/${course.slug}`, label: course.title }, { label: 'Enroll' }]} title={`Enroll in ${course.title}`} sub="Send your details and our admissions team will call you within one working day to confirm your batch. No payment is taken now." />
@@ -30,8 +34,15 @@ export default async function EnrollPage({ params }: { params: { slug: string } 
         </div>
         <aside className="card space-y-3">
           <p className="font-serif text-[20px] font-bold">{course.title}</p>
+          {promo && (
+            <div className="rounded-2xl border border-deal/20 bg-deal-soft/60 px-5 py-4">
+              <PromoBadge promo={promo} />
+              <div className="mt-3"><PromoPrice promo={promo} size="sm" /></div>
+              {promo.endsOn && <p className="mt-1 text-[12px] text-ink-soft">Offer ends {promoEnds(promo.endsOn)}. The fee is confirmed when our team calls.</p>}
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-3">
-            <Fact label="Course fee" value={inr(course.price)} />
+            <Fact label="Course fee" value={promo ? <><span className="text-deal">{inr(promo.price)}</span> <s className="text-[12px] font-normal text-ink-soft">{inr(promo.original)}</s></> : inr(course.price)} />
             <Fact label="Duration" value={durationLabel(course.duration_days)} />
             <Fact label="Level" value={course.level} />
             <Fact label="Mode" value={course.mode} />
