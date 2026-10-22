@@ -14,7 +14,7 @@ export default async function ContactPage() {
   return (
     <Section>
       <PageHeader crumbs={[{ href: '/', label: 'Home' }, { label: 'Contact' }]} title={c.title} sub={c.sub} />
-      <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
         <div className="card">
           <ActionForm action={contactAction} className="grid gap-5 sm:grid-cols-2">
             <Field label="Your name" name="name" required autoComplete="name" />

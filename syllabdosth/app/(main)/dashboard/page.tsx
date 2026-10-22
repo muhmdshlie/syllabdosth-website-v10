@@ -224,7 +224,7 @@ async function Learning({ userId, enrolledIds, courseTitle, courseSlug }: { user
           {enrolledIds.map((id) => reviews.some((r) => r.course_id === id) ? (
             <p key={id} className="text-[14px] text-ink-soft">✓ You reviewed <span className="font-semibold text-ink">{courseTitle(id)}</span>. Thank you!</p>
           ) : (
-            <ActionForm key={id} action={submitReviewAction} className="grid gap-4 sm:grid-cols-[180px_1fr_auto] sm:items-end">
+            <ActionForm key={id} action={submitReviewAction} className="grid gap-4 sm:grid-cols-[180px_minmax(0,1fr)_auto] sm:items-end">
               <input type="hidden" name="course_id" value={id} />
               <SelectField label={courseTitle(id)} name="rating" defaultValue="5" options={[5, 4, 3, 2, 1].map((n) => ({ value: String(n), label: `${'★'.repeat(n)} (${n})` }))} />
               <Field label="Your review" name="comment" required placeholder="What did you like? What could be better?" />
@@ -241,7 +241,7 @@ async function Learning({ userId, enrolledIds, courseTitle, courseSlug }: { user
 async function Support({ userId }: { userId: string }) {
   const tickets = await lms.ticketsForUser(userId);
   return (
-    <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
       <Panel title="My support tickets">
         <Table
           head={['Subject', 'Status', 'Updated', '']}

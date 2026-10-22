@@ -149,7 +149,7 @@ export default async function HomePage() {
 
       {/* 9 · FAQ */}
       <Section tone="cream">
-        <div className="grid gap-10 lg:grid-cols-[1fr_1.4fr]">
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
           <div className="self-start lg:sticky lg:top-28">
             <SectionHeader eyebrow={c.faq.eyebrow} title={c.faq.title} sub={c.faq.sub} />
             <Link href="/help" className="btn-secondary -mt-4">All help topics</Link>
@@ -181,7 +181,7 @@ export default async function HomePage() {
       {/* 11 · Closing CTA + newsletter */}
       <section className="bg-noir py-24 text-pearl sm:py-32">
         <div className="container-page">
-          <div data-reveal className="grid items-end gap-10 lg:grid-cols-[1.3fr_1fr]">
+          <div data-reveal className="grid items-end gap-10 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
             <div>
               <p className="eyebrow text-ink-dark-muted">{c.closing.eyebrow}</p>
               <h2 className="h-display mt-5 text-[44px] sm:text-[72px] lg:text-[96px]">{c.closing.title1}<br /><span className="accent text-pearl/85">{c.closing.title2}</span></h2>

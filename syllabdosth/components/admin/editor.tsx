@@ -80,7 +80,7 @@ function prepare(fields: Field[], row: Row, creating: boolean): Row {
 
 function FieldGrid({ fields, values, set, options, creating, secretsSet, path, folder, placeholders = {} }: { fields: Field[]; values: Row; set: (n: string, v: unknown) => void; options: Record<string, Option[]>; creating: boolean; secretsSet: string[]; path: string; folder: string; placeholders?: Record<string, string> }) {
   return (
-    <div className="grid gap-x-5 gap-y-5 md:grid-cols-2">
+    <div className="grid grid-cols-1 gap-x-5 gap-y-5 md:grid-cols-2">
       {fields.map((f) => {
         if (f.showIf && !f.showIf.equals.includes(String(values[f.showIf.field] ?? ''))) return null;
         if (f.createOnly && !creating && f.type !== 'slug' && f.type !== 'text' && f.type !== 'email' && f.type !== 'bool') return null;

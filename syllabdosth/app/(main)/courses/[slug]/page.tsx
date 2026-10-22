@@ -31,7 +31,7 @@ export default async function CoursePage({ params }: { params: { slug: string } 
     <>
       <Section className="!pb-16">
         <Breadcrumbs items={[{ href: '/', label: 'Home' }, { href: '/courses', label: 'Courses' }, { href: `/courses?category=${course.category_slug}`, label: cat?.name ?? 'Category' }, { label: course.title }]} />
-        <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_360px]">
+        <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1fr)_360px]">
           <div>
             <Tag className="!bg-noir !text-taupe-light">{cat?.name}</Tag>
             <h1 className="h1 mt-4">{course.title}</h1>

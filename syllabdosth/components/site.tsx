@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { dashboardPathFor, getCurrentUser } from '@/lib/auth';
 import { getContent, getSiteSettings, type SiteSettings } from '@/lib/cms/content';
 import { isDemo } from '@/lib/config';
+import { MobileMenuCloser } from './motion';
 
 export function Logo({ dark, className = 'h-9 sm:h-10', site }: { dark?: boolean; className?: string; site: SiteSettings }) {
   // Logos are set in Admin > Website Settings > Logo & branding (defaults: /public/logo-noir.png and /public/logo-white.png).
@@ -60,18 +61,15 @@ export async function Nav({ dark = false }: { dark?: boolean }) {
           </div>
           <details className="relative lg:hidden">
             <summary className={`micro list-none cursor-pointer rounded-[6px] px-4 py-3 ${dark ? 'bg-white/10 text-pearl' : 'bg-noir text-pearl'}`}>Menu</summary>
-            <div className="liquid-glass-light absolute right-0 z-50 mt-3 w-64 rounded-[10px] p-3">
+            <MobileMenuCloser />
+            <div className="liquid-glass-light absolute right-0 z-50 mt-3 max-h-[calc(100svh-6rem)] w-[min(18rem,calc(100vw-2.5rem))] overflow-y-auto rounded-[10px] p-3">
               {[...links, { href: user ? dashboardPathFor(user.profile.role) : '/login', label: user ? 'Dashboard' : 'Log in' }].map((l) => (
                 <Link key={l.href} href={l.href} className="block rounded-[4px] px-3 py-3 font-display text-[13px] font-medium uppercase tracking-[0.14em] text-ink hover:bg-white/70">{l.label}</Link>
               ))}
-             <div className="flex gap-3 mt-2">
-  <Link href="/courses" className="btn-primary">
-    Explore courses →
-  </Link>
-  <Link href="/franchise" className="btn-primary">
-    Franchise →
-  </Link>
-</div>
+              <div className="mt-2 grid gap-2">
+                <Link href="/courses" className="btn-primary w-full">Explore courses →</Link>
+                <Link href="/franchise" className="btn-secondary w-full">Franchise →</Link>
+              </div>
             </div>
           </details>
         </div>
@@ -104,8 +102,8 @@ export async function Footer() {
   return (
     <footer className="bg-noir text-pearl">
       <div className="container-page pb-10 pt-20">
-        <div className="grid gap-12 border-b border-white/10 pb-16 lg:grid-cols-[1.6fr_repeat(4,1fr)]">
-          <div>
+        <div className="grid grid-cols-2 gap-x-6 gap-y-12 border-b border-white/10 pb-16 md:grid-cols-4 lg:grid-cols-[minmax(0,1.6fr)_repeat(4,minmax(0,1fr))] lg:gap-12">
+          <div className="col-span-2 md:col-span-4 lg:col-span-1">
             <Logo dark className="h-9" site={site} />
             <p className="mt-8 font-display text-[30px] font-medium uppercase leading-[0.95] tracking-[-0.03em]">{f.line1}<br /><span className="accent text-stone-light">{f.line2}</span></p>
             <p className="mt-5 max-w-xs text-[14px] leading-relaxed text-ink-dark-muted">{f.blurb}</p>
@@ -132,7 +130,7 @@ export async function Footer() {
             </div>
           ))}
         </div>
-        <p aria-hidden className="select-none py-10 text-center font-display text-[15vw] font-medium uppercase leading-[0.8] tracking-[-0.05em] text-white/[0.06] lg:text-[170px]">{f.bigWord}</p>
+        <p aria-hidden className="select-none overflow-hidden py-10 text-center font-display text-[min(12.5vw,165px)] font-medium uppercase leading-[0.8] tracking-[-0.05em] text-white/[0.06]">{f.bigWord}</p>
         <div className="micro flex flex-col gap-3 text-ink-dark-muted sm:flex-row sm:justify-between">
           <p>© {new Date().getFullYear()} {site.siteName} · All rights reserved</p>
           

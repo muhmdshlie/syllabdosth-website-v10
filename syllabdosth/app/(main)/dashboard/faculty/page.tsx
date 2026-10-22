@@ -55,7 +55,7 @@ export default async function FacultyDashboard() {
               <div key={x.id} className="rounded-card border border-line bg-white/60 p-5">
                 <p className="font-semibold">{x.student_name} <span className="font-normal text-ink-soft">· {title(x.course_id ?? '')} · {fmtDate(x.created_at)}</span></p>
                 <p className="mt-2 whitespace-pre-wrap break-words text-[14px]">{x.answer}</p>
-                <ActionForm action={facultyGradeAction} className="mt-4 grid gap-3 sm:grid-cols-[120px_1fr_180px_auto] sm:items-end">
+                <ActionForm action={facultyGradeAction} className="mt-4 grid gap-3 sm:grid-cols-[120px_minmax(0,1fr)_180px_auto] sm:items-end">
                   <input type="hidden" name="id" value={x.id} />
                   <Field label={`Score / ${x.max_score ?? 100}`} name="score" type="number" required min={0} />
                   <Field label="Feedback" name="feedback" />

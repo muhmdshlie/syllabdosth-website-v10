@@ -5,6 +5,7 @@
  * full-bleed, the headline lifts away, and a second line ("Explore every craft") fades in.
  */
 import Link from 'next/link';
+import type React from 'react';
 import { useEffect, useRef } from 'react';
 import { DepthPhoto } from './depth-photo';
 import { DiwaliDecor } from './diwali-decor';
@@ -82,12 +83,12 @@ export function HeroReveal({ photo, stats, copy }: Props) {
                 <Link href="/courses" className="btn-primary">{copy.primaryCta} <span aria-hidden>→</span></Link>
                 <Link href="/services" className="btn-ghost-dark">{copy.secondaryCta}</Link>
               </div>
-              <dl className="grid gap-4 sm:gap-10" style={{ gridTemplateColumns: `repeat(${Math.max(1, Math.min(stats.length, 5))}, minmax(0, 1fr))` }}>
+              <dl className="flex flex-wrap gap-x-5 gap-y-4 sm:grid sm:grid-cols-[repeat(var(--n),minmax(0,1fr))] sm:gap-10" style={{ '--n': Math.max(1, Math.min(stats.length, 5)) } as React.CSSProperties}>
                 {stats.map((s, i) => (
                   <div key={i}>
                     <dt className="sr-only">{s.label}</dt>
                     <dd className="font-display text-[22px] font-medium tracking-[-0.02em] sm:text-[28px]">{s.value}</dd>
-                    <dd className="micro mt-1 max-w-[90px] text-ink-dark-muted max-sm:!text-[9px] max-sm:!tracking-[0.08em]">{s.label}</dd>
+                    <dd className="micro mt-1 max-w-[90px] text-ink-dark-muted [overflow-wrap:normal] max-sm:!text-[9px] max-sm:!tracking-[0.08em]">{s.label}</dd>
                   </div>
                 ))}
               </dl>
@@ -101,7 +102,7 @@ export function HeroReveal({ photo, stats, copy }: Props) {
           <p className="accent text-[22px] text-pearl/85 sm:text-[40px]">{copy.second2}</p>
         </div>
 
-        <div className="hero-scroll micro absolute bottom-6 left-1/2 -translate-x-1/2 text-ink-dark-muted" aria-hidden>Scroll</div>
+        <div className="hero-scroll micro absolute bottom-6 left-1/2 hidden -translate-x-1/2 text-ink-dark-muted sm:block" aria-hidden>Scroll</div>
       </div>
     </section>
   );

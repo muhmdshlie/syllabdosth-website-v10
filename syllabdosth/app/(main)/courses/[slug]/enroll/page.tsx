@@ -16,7 +16,7 @@ export default async function EnrollPage({ params }: { params: { slug: string } 
   return (
     <Section>
       <PageHeader crumbs={[{ href: '/courses', label: 'Courses' }, { href: `/courses/${course.slug}`, label: course.title }, { label: 'Enroll' }]} title={`Enroll in ${course.title}`} sub="Send your details and our admissions team will call you within one working day to confirm your batch. No payment is taken now." />
-      <div className="grid gap-6 lg:grid-cols-[1fr_420px]">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
         <div className="card">
           <ActionForm action={enrollAction} className="grid gap-5 sm:grid-cols-2">
             <input type="hidden" name="course_id" value={course.id} />

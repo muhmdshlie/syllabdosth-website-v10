@@ -33,7 +33,7 @@ export async function ContentPage({ contentKey, crumbs, back, children, reset }:
       />
       {reset && <Flash>Reset to the original content.</Flash>}
       {!saved && def.kind === 'page' && <Flash tone="orange">This page shows its original content. Change anything below and press Save.</Flash>}
-      <div className="grid gap-6 xl:grid-cols-[1fr_320px]">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
         <Card><RecordEditor fields={def.fields} initial={safe} action={saveContentAction} hidden={{ key: contentKey }} secretsSet={secretsSet} folder={def.kind === 'page' ? 'cms' : 'settings'} /></Card>
         <aside className="space-y-6">{children ?? <HelpCard kind={def.kind} />}</aside>
       </div>

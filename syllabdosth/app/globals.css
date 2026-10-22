@@ -11,6 +11,9 @@
   body { @apply bg-paper font-sans text-ink antialiased; }
   h1, h2 { @apply font-display font-medium uppercase tracking-[-0.03em]; }
   h3, h4 { @apply font-display font-medium tracking-[-0.01em]; }
+  /* Responsive safety: long words wrap instead of pushing past narrow screens; media never outgrows its box. */
+  h1, h2, h3, h4, p, li, dd, blockquote, figcaption { overflow-wrap: break-word; }
+  img, video, canvas, iframe { max-width: 100%; }
   :focus-visible { outline: 2px solid #8A877F; outline-offset: 3px; }
   ::selection { background: #0B0B0B; color: #F2F0EB; }
 }

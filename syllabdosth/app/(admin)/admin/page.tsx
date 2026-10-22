@@ -27,7 +27,7 @@ export default async function AdminDashboard({ searchParams }: { searchParams: {
         <StatCard title="Total Course" value={m.cards.courses.total} month={m.cards.courses.month} spark={m.cards.courses.spark} color={C.indigo} soft="bg-adm-indigo-soft text-adm-indigo" href="/admin/courses" />
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1.55fr_1fr]">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
         {/* activity report */}
         <section className="adm-card p-6">
           <div className="flex items-center justify-between gap-4 border-b border-adm-line pb-4">
@@ -73,7 +73,7 @@ export default async function AdminDashboard({ searchParams }: { searchParams: {
         </div>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
         <section className="adm-card p-6">
           <div className="flex items-center justify-between gap-4 border-b border-adm-line pb-4">
             <h2 className="text-[22px] font-medium">Most Enquired Courses</h2>

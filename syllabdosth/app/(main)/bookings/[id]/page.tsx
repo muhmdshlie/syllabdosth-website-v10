@@ -31,7 +31,7 @@ export default async function BookingPage({ params }: { params: { id: string } }
       <Link href={user ? '/dashboard' : '/services'} className="inline-flex items-center gap-2 text-[14px] font-semibold text-ink-deep hover:underline"><Arrow left /> Back</Link>
       <h1 className="h1 mt-4">My booking request</h1>
       <p className="body-l mt-3 text-ink-deep-muted">Here are the details of your service booking request.</p>
-      <div className="mt-10 grid gap-6 lg:grid-cols-[1fr_420px]">
+      <div className="mt-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
         <div className="space-y-6">
           <div className={`rounded-card p-6 ${banner[0]}`} role="status">
             <p className="text-[17px] font-semibold">{banner[1]}</p>

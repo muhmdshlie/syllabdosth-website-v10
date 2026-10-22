@@ -15,7 +15,7 @@ export default async function LoginPage({ searchParams }: { searchParams: { next
   if (user) redirect(next || dashboardPathFor(user.profile.role));
   return (
     <Section>
-      <div className="mx-auto grid max-w-5xl gap-8 lg:grid-cols-[1fr_1fr]">
+      <div className="mx-auto grid max-w-5xl gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <div className="card">
           <h1 className="h1">Welcome back</h1>
           <p className="mt-2 text-ink-soft">Log in to track bookings, courses and requests.</p>

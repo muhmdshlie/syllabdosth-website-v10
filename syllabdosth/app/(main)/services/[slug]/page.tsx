@@ -28,12 +28,12 @@ export default async function BookServicePage({ params, searchParams }: { params
       <h1 className="h1 mt-4">Book {service.title}</h1>
       <p className="body-l mt-3 max-w-3xl text-ink-deep-muted">Choose your preferred date and share a few details. Your request goes to the professional, who confirms the appointment with you.</p>
 
-      <div className="mt-10 grid gap-6 lg:grid-cols-[1fr_460px]">
+      <div className="mt-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_460px]">
         <div className="space-y-6">
           <div className="card space-y-6">
-            <div className="flex gap-5">
+            <div className="flex flex-col gap-5 sm:flex-row">
               <Photo src={servicePhoto(service.slug, 300, service.image_url)} alt={service.title} eager className="h-24 w-24 shrink-0 rounded-2xl ring-4 ring-paper sm:h-28 sm:w-28" />
-              <div>
+              <div className="min-w-0">
                 <Tag>{service.category}</Tag>
                 <h2 className="h2 mt-2">{service.title}</h2>
                 <p className="mt-2 text-ink-soft">{service.summary} {service.description}</p>

@@ -27,6 +27,26 @@ export function RevealOnScroll() {
   return null;
 }
 
+/**
+ * Closes the mobile <details> menu it sits in after navigating, on Escape, or on a tap outside it
+ * (the header lives in the layout, so it would otherwise stay open across page changes).
+ */
+export function MobileMenuCloser() {
+  const pathname = usePathname();
+  const ref = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    const menu = ref.current?.closest('details');
+    if (!menu) return;
+    menu.open = false;
+    const onPointer = (e: PointerEvent) => { if (menu.open && !menu.contains(e.target as Node)) menu.open = false; };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape' && menu.open) { menu.open = false; menu.querySelector('summary')?.focus(); } };
+    document.addEventListener('pointerdown', onPointer);
+    document.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('pointerdown', onPointer); document.removeEventListener('keydown', onKey); };
+  }, [pathname]);
+  return <span ref={ref} hidden />;
+}
+
 /** Counts up to a stat like "200+", "20k+" or "4.9★" when it scrolls into view. */
 export function CountUp({ value, className }: { value: string; className?: string }) {
   const m = value.match(/^([\d.]+)(.*)$/);

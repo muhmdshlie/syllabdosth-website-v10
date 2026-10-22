@@ -28,18 +28,20 @@ export default async function LoginMethods() {
       <PageHeader title="Login methods" crumbs={[{ label: 'SMS & OTP' }, { label: 'Login methods' }]} sub="How people can sign in. These switches live in Supabase, so this page shows their current state."
         actions={<a href={dash} target="_blank" rel="noreferrer" className="adm-btn-primary">Open Supabase → Providers</a>} />
       <Card pad={false}>
-        <table className="w-full">
-          <thead className="bg-[#F8FBFA]"><tr><th className="adm-th">Method</th><th className="adm-th">Status</th><th className="adm-th">How to set up</th></tr></thead>
-          <tbody>
-            {rows.map(([k, label, on, how]) => (
-              <tr key={k} className="border-t border-adm-line">
-                <td className="adm-td font-medium">{label}</td>
-                <td className="adm-td">{isDemo ? <StatusBadge value="Demo mode" tone="grey" /> : on === undefined ? <StatusBadge value="Unknown" tone="grey" /> : on ? <StatusBadge value="On" tone="green" /> : <StatusBadge value="Off" tone="red" />}</td>
-                <td className="adm-td text-[13px] text-adm-muted">{how}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="relative overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-[#F8FBFA]"><tr><th className="adm-th">Method</th><th className="adm-th">Status</th><th className="adm-th">How to set up</th></tr></thead>
+            <tbody>
+              {rows.map(([k, label, on, how]) => (
+                <tr key={k} className="border-t border-adm-line">
+                  <td className="adm-td font-medium">{label}</td>
+                  <td className="adm-td">{isDemo ? <StatusBadge value="Demo mode" tone="grey" /> : on === undefined ? <StatusBadge value="Unknown" tone="grey" /> : on ? <StatusBadge value="On" tone="green" /> : <StatusBadge value="Off" tone="red" />}</td>
+                  <td className="adm-td text-[13px] text-adm-muted">{how}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </Card>
       <Card title="Redirect URLs to add in Supabase" className="mt-6">
         <p className="text-[14px] text-adm-muted">Supabase → Authentication → URL Configuration → Redirect URLs:</p>

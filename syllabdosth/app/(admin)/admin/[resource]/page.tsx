@@ -79,7 +79,7 @@ export default async function ResourceList({ params, searchParams }: { params: {
             action={!filtered && !r.noCreate ? <Link href={`/admin/${r.key}/new`} className="adm-btn-primary"><Icon name="plus" size={18} />Add {r.singular}</Link> : undefined}
           />
         ) : (
-          <div className="overflow-x-auto">
+          <div className="relative overflow-x-auto">
             <table className="w-full">
               <thead className="bg-[#F8FBFA]">
                 <tr className="border-b border-adm-line">

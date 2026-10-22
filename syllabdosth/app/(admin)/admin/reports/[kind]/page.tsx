@@ -69,7 +69,7 @@ export default async function Report({ params, searchParams }: { params: { kind:
 
       <Card title="Per day" className="mb-6"><BarChart labels={labels} series={[{ name: k.title.replace(' Report', ''), color: '#27AE7A', values: perDay }]} height={240} /></Card>
 
-      <div className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
         <Card title={params.kind === 'courses' ? 'Courses: enquiries and conversion' : `By ${k.groupLabel.toLowerCase()}`} pad={false}>
           <table className="w-full">
             <thead className="bg-[#F8FBFA]"><tr><th className="adm-th">{k.groupLabel}</th><th className="adm-th text-right">Count</th>{params.kind === 'courses' && <><th className="adm-th text-right">Enrolled</th><th className="adm-th text-right">Conversion</th></>}</tr></thead>

@@ -14,7 +14,7 @@ export default function GroupBookingPage() {
       <Link href="/services" className="inline-flex items-center gap-2 text-[14px] font-semibold text-ink-deep hover:underline"><Arrow left /> Back to services</Link>
       <h1 className="h1 mt-4">Plan a group booking</h1>
       <p className="body-l mt-3 max-w-3xl text-ink-deep-muted">Tell us a little about your group and what you need. We’ll get back to you with availability and pricing within one working day.</p>
-      <div className="mt-10 grid gap-6 lg:grid-cols-[1fr_420px]">
+      <div className="mt-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
         <div className="card">
           <h2 className="h3 mb-6">Group enquiry</h2>
           <ActionForm action={groupEnquiryAction} className="grid gap-5 sm:grid-cols-2">

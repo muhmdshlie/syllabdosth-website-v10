@@ -17,6 +17,7 @@ const sorts = [['', 'Recommended'], ['popular', 'Most popular'], ['price-asc', '
 export default async function CoursesPage({ searchParams }: { searchParams: CourseFilter }) {
   const [categories, courses, pages] = await Promise.all([listCategories(), listCourses(searchParams), getContent<{ courses: { title: string; sub: string } }>('page.listings')]);
   const active = categories.find((c) => c.slug === searchParams.category);
+  const filtering = Boolean(searchParams.q || searchParams.level || searchParams.duration || searchParams.price || searchParams.sort);
   const qs = (patch: Partial<CourseFilter>) => {
     const p = new URLSearchParams(Object.entries({ ...searchParams, ...patch }).filter(([, v]) => v) as [string, string][]);
     const s = p.toString();
@@ -32,20 +33,23 @@ export default async function CoursesPage({ searchParams }: { searchParams: Cour
           sub={active?.description || pages.courses.sub}
           underline
         />
-        <div className="flex flex-wrap gap-2" role="list" aria-label="Categories">
-          <Link role="listitem" href={qs({ category: undefined })} className={`rounded-full px-5 py-2.5 text-[14px] font-semibold ${!active ? 'bg-noir text-white shadow-md' : 'bg-white text-ink hover:-translate-y-0.5 hover:bg-taupe-light'}`}>All courses</Link>
+        <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-2 pt-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0" role="list" aria-label="Categories">
+          <Link role="listitem" href={qs({ category: undefined })} className={`shrink-0 whitespace-nowrap rounded-full px-5 py-2.5 text-[14px] font-semibold ${!active ? 'bg-noir text-white shadow-md' : 'bg-white text-ink hover:-translate-y-0.5 hover:bg-taupe-light'}`}>All courses</Link>
           {categories.map((c) => (
-            <Link role="listitem" key={c.slug} href={qs({ category: c.slug })} className={`rounded-full py-2 pl-2 pr-5 text-[14px] font-semibold transition ${active?.slug === c.slug ? 'bg-noir text-white shadow-md' : 'bg-white text-ink hover:-translate-y-0.5 hover:bg-taupe-light'}`}><span className="inline-flex items-center gap-2"><Photo src={categoryPhoto(c.slug, 120, c.image_url)} className="h-6 w-6 rounded-full ring-2 ring-white" />{c.name}</span></Link>
+            <Link role="listitem" key={c.slug} href={qs({ category: c.slug })} className={`shrink-0 whitespace-nowrap rounded-full py-2 pl-2 pr-5 text-[14px] font-semibold transition ${active?.slug === c.slug ? 'bg-noir text-white shadow-md' : 'bg-white text-ink hover:-translate-y-0.5 hover:bg-taupe-light'}`}><span className="inline-flex items-center gap-2"><Photo src={categoryPhoto(c.slug, 120, c.image_url)} className="h-6 w-6 rounded-full ring-2 ring-white" />{c.name}</span></Link>
           ))}
         </div>
       </Section>
 
       <section className="bg-paper pb-24">
-        <div className="container-page grid gap-8 lg:grid-cols-[260px_1fr]">
+        <div className="container-page grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)]">
           <aside>
-            <form method="get" action="/courses" className="card sticky top-6 space-y-5 !p-6" aria-label="Filter courses">
+            {/* Below lg the filters fold behind a toggle (CSS only) so the results stay near the top. */}
+            <input type="checkbox" id="filters-toggle" className="peer sr-only" defaultChecked={filtering} />
+            <label htmlFor="filters-toggle" className="btn-secondary w-full cursor-pointer peer-checked:mb-4 peer-focus-visible:outline peer-focus-visible:outline-2 lg:hidden">Filter &amp; sort</label>
+            <form method="get" action="/courses" className="card hidden gap-5 !p-6 peer-checked:grid sm:grid-cols-2 lg:sticky lg:top-28 lg:grid lg:grid-cols-1" aria-label="Filter courses">
               {searchParams.category && <input type="hidden" name="category" value={searchParams.category} />}
-              <div>
+              <div className="sm:col-span-2 lg:col-span-1">
                 <label htmlFor="q" className="label">Search</label>
                 <input id="q" name="q" defaultValue={searchParams.q} placeholder="e.g. blouse, bridal" className="input" />
               </div>
@@ -53,8 +57,10 @@ export default async function CoursesPage({ searchParams }: { searchParams: Cour
               <Select name="duration" label="Duration" value={searchParams.duration} options={durations} />
               <Select name="price" label="Price" value={searchParams.price} options={prices} />
               <Select name="sort" label="Sort by" value={searchParams.sort} options={sorts} />
-              <button className="btn-dark w-full" type="submit">Apply filters</button>
-              <Link href="/courses" className="block text-center text-[14px] font-semibold underline">Reset filters</Link>
+              <div className="space-y-5 sm:col-span-2 lg:col-span-1">
+                <button className="btn-dark w-full" type="submit">Apply filters</button>
+                <Link href="/courses" className="block text-center text-[14px] font-semibold underline">Reset filters</Link>
+              </div>
             </form>
           </aside>
           <div>

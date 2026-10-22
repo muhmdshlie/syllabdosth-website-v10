@@ -47,7 +47,7 @@ export default async function EditRecord({ params, searchParams }: { params: Par
       {searchParams.saved && <Flash>Saved. You can keep editing below.</Flash>}
       {searchParams.error && <Flash tone="red">{searchParams.error}</Flash>}
 
-      <div className="grid gap-6 xl:grid-cols-[1fr_340px]">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
         <div className="min-w-0 space-y-6">
           {r.key === 'tickets' && (
             <Card title={`Conversation · ${String(row.category)}`} action={<StatusBadge value={String(row.status)} />}>
