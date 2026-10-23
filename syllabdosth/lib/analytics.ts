@@ -14,12 +14,13 @@ import { createAdminClient } from './supabase/server';
 const V1_KINDS = ['page', 'course', 'enroll', 'enroll_sent', 'search'] as const;
 export type PageKind = (typeof V1_KINDS)[number] | 'service' | 'booking_sent' | 'group' | 'group_sent' | 'apply' | 'apply_sent';
 export type Device = 'mobile' | 'tablet' | 'desktop';
+export type Browser = 'chrome' | 'safari' | 'edge' | 'firefox' | 'samsung' | 'opera' | 'in_app' | 'other';
 export type Medium = 'direct' | 'search' | 'social' | 'referral' | 'campaign' | 'email';
 
 export type AnalyticsEvent = {
   day: string; visitor_id: string; is_returning: boolean; path: string; page_kind: PageKind; course_slug: string | null;
   search_term: string | null; search_results: number | null; landing: boolean; source: string | null; medium: Medium | null; device: Device;
-  campaign?: string | null;
+  campaign?: string | null; browser?: Browser;
 };
 
 const SAFE_PATH = /^\/[A-Za-z0-9\-._/[\]]*$/;
@@ -58,6 +59,18 @@ export function deviceFrom(ua: string, touch: boolean): Device {
   return 'desktop';
 }
 
+/** Browser family only (never the version or the full user agent). Order matters: Edge, Opera and Samsung also say "Chrome". */
+export function browserFrom(ua: string): Browser {
+  if (/FBAN|FBAV|Instagram|Line\//.test(ua)) return 'in_app';
+  if (/Edg(e|A|iOS)?\//.test(ua)) return 'edge';
+  if (/SamsungBrowser/.test(ua)) return 'samsung';
+  if (/OPR\/|Opera/.test(ua)) return 'opera';
+  if (/Firefox|FxiOS/.test(ua)) return 'firefox';
+  if (/Chrome|CriOS/.test(ua)) return 'chrome';
+  if (/Safari/.test(ua)) return 'safari';
+  return 'other';
+}
+
 export const isBot = (ua: string) => !ua || /bot|crawl|spider|slurp|headless|lighthouse|pingdom|preview|externalhit|curl|wget|python|axios|node-fetch|go-http/i.test(ua);
 
 const SEARCH_ENGINES = /(^|\.)(google|bing|duckduckgo|yahoo|yandex|baidu|ecosia|startpage)\./;
@@ -91,6 +104,8 @@ function allowed(visitor: string) {
   return ++t.n <= 60;
 }
 
+let v1Until = 0; // until then, insert page views in the pre-migration shape (see below)
+
 export async function recordEvent(e: AnalyticsEvent): Promise<void> {
   if (!allowed(e.visitor_id)) return;
   if (isDemo) {
@@ -99,12 +114,19 @@ export async function recordEvent(e: AnalyticsEvent): Promise<void> {
   }
   const db = createAdminClient();
   purgeDaily(db);
-  const { campaign, ...rest } = e;
-  const row: Record<string, unknown> = campaign ? { ...rest, campaign } : rest; // no campaign key, so rows insert before the migration too
-  let { error } = await db.from('analytics_events').insert(row);
-  // Before the v2 migration the new page kinds and the campaign column don't exist: keep the page view the old way.
+  const { campaign, browser, ...v1 } = e;
+  const legacy = { ...v1, page_kind: (V1_KINDS as readonly string[]).includes(v1.page_kind) ? v1.page_kind : 'page' };
+  if (Date.now() < v1Until) {
+    const { error } = await db.from('analytics_events').insert(legacy);
+    if (error) throw new Error(error.message);
+    return;
+  }
+  let { error } = await db.from('analytics_events').insert({ ...v1, browser, ...(campaign && { campaign }) });
+  // Before the v2 migration the new page kinds and columns don't exist: keep the page view the old way,
+  // and skip the new shape for a while instead of trying it on every page view.
   if (error && ['23514', '42703', 'PGRST204'].includes(error.code ?? '')) {
-    ({ error } = await db.from('analytics_events').insert({ ...rest, page_kind: (V1_KINDS as readonly string[]).includes(rest.page_kind) ? rest.page_kind : 'page' }));
+    ({ error } = await db.from('analytics_events').insert(legacy));
+    if (!error) v1Until = Date.now() + 10 * 60_000;
   }
   if (error) throw new Error(error.message);
 }
@@ -149,6 +171,7 @@ export type AnalyticsSummary = {
   sources: { source: string; medium: Medium; visits: number; converted: number }[];
   campaigns: { campaign: string; source: string; medium: Medium; visits: number; converted: number }[];
   devices: { device: Device; visitors: number; views: number }[];
+  browsers: { browser: Browser; visitors: number; views: number }[];
   searches: { term: string; count: number; zero: number }[];
   funnel: { viewed: number; started: number; sent: number };
   funnels: { serviceViewed: number; bookingSent: number; groupOpened: number; groupSent: number; applyOpened: number; applySent: number };
@@ -185,7 +208,7 @@ type V1Summary = Partial<Omit<AnalyticsSummary, 'totals' | 'daily' | 'sources' |
 
 export function withDefaults(raw: V1Summary): AnalyticsSummary {
   return {
-    weekly: [], monthly: [], services: [], entries: [], campaigns: [], vitals: [], slowPages: [], errors: [],
+    weekly: [], monthly: [], services: [], entries: [], campaigns: [], browsers: [], vitals: [], slowPages: [], errors: [],
     pages: [], courses: [], devices: [], searches: [], funnel: { viewed: 0, started: 0, sent: 0 },
     ...raw,
     totals: { sessions: 0, singlePage: 0, converted: 0, ...raw.totals },
@@ -288,6 +311,7 @@ export function summarize(all: StoredEvent[], from: string, to: string, health: 
       return { campaign, source, medium: medium as Medium, visits: l.length, converted: visitStats(l).converted };
     }).sort(byDesc((x) => x.visits, (x) => x.campaign)).slice(0, 15),
     devices: group(rows, (r) => r.device).map(([device, l]) => ({ device, visitors: distinct(l), views: l.length })).sort(byDesc((x) => x.visitors, (x) => x.device)),
+    browsers: group(rows, (r) => r.browser ?? null).map(([browser, l]) => ({ browser, visitors: distinct(l), views: l.length })).sort(byDesc((x) => x.visitors, (x) => x.browser)),
     searches: group(of('search'), (r) => r.search_term).filter(([, l]) => l.length >= MIN_TERM_COUNT)
       .map(([term, l]) => ({ term, count: l.length, zero: l.filter((r) => r.search_results === 0).length })).sort(byDesc((x) => x.count, (x) => x.term)).slice(0, 20),
     funnel: { viewed: distinct(of('course')), started: distinct(of('enroll')), sent: distinct(of('enroll_sent')) },

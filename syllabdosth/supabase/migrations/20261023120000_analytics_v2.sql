@@ -4,26 +4,28 @@
 -- no existing row is changed or deleted, and no existing column is removed.
 --
 --   * analytics_events: six more page kinds (service, booking_sent, group,
---     group_sent, apply, apply_sent), a campaign column (cleaned utm_campaign)
---     and an index for working out visits.
+--     group_sent, apply, apply_sent), a campaign column (cleaned utm_campaign),
+--     a browser column (browser family only, e.g. 'chrome'; never the version
+--     or user agent) and an index for working out visits.
 --   * site_vitals: new table for page-speed measurements (Core Web Vitals) and
 --     error counts. Path, metric, number and device type only: no visitor id,
 --     IP address, user agent, account or error message.
 --   * analytics_summary(): same name, arguments and permissions; returns the
 --     old keys unchanged plus visits (sessions), weekly/monthly trends, landing
---     pages, campaigns, services, more funnels and site health.
+--     pages, campaigns, services, browsers, more funnels and site health.
 --   * analytics_purge(): also deletes site_vitals rows older than the limit.
 --
 -- Permissions: as before, RLS on with NO policies and no grants to anon /
 -- authenticated, so the public API can neither read nor write either table.
 -- Only the service role (server code, after the consent and admin checks) can.
 --
--- Rollback (restores v1 behaviour; the v1 function bodies are in
--- 20261022130000_site_analytics.sql, re-run that file after these lines):
+-- Rollback (restores v1 and keeps every page view). First re-run
+-- 20261022130000_site_analytics.sql, which puts back the v1 functions, then run:
 --   drop table if exists public.site_vitals;
 --   drop index if exists public.analytics_events_visitor_idx;
 --   alter table public.analytics_events drop column if exists campaign;
---   delete from public.analytics_events where page_kind not in ('page', 'course', 'enroll', 'enroll_sent', 'search');
+--   alter table public.analytics_events drop column if exists browser;
+--   update public.analytics_events set page_kind = 'page' where page_kind not in ('page', 'course', 'enroll', 'enroll_sent', 'search');
 --   alter table public.analytics_events drop constraint if exists analytics_events_page_kind_check;
 --   alter table public.analytics_events add constraint analytics_events_page_kind_check
 --     check (page_kind in ('page', 'course', 'enroll', 'enroll_sent', 'search'));
@@ -37,6 +39,10 @@ alter table public.analytics_events add constraint analytics_events_page_kind_ch
 
 -- 2. Campaign name from utm_campaign (lower-case letters, digits, . _ - only; cleaned by the server).
 alter table public.analytics_events add column if not exists campaign text check (char_length(campaign) <= 60);
+
+-- 2b. Browser family, worked out by the server from the user agent (which itself is never stored).
+alter table public.analytics_events add column if not exists browser text
+  check (browser in ('chrome', 'safari', 'edge', 'firefox', 'samsung', 'opera', 'in_app', 'other'));
 
 -- 3. Visits are worked out per visitor in time order.
 create index if not exists analytics_events_visitor_idx on public.analytics_events (visitor_id, created_at);
@@ -156,6 +162,9 @@ as $$
     'devices', coalesce((
       select jsonb_agg(jsonb_build_object('device', device, 'visitors', visitors, 'views', views) order by visitors desc, device)
       from (select device, count(distinct visitor_id) as visitors, count(*) as views from e group by device) d), '[]'::jsonb),
+    'browsers', coalesce((
+      select jsonb_agg(jsonb_build_object('browser', browser, 'visitors', visitors, 'views', views) order by visitors desc, browser)
+      from (select browser, count(distinct visitor_id) as visitors, count(*) as views from e where browser is not null group by browser) d), '[]'::jsonb),
     -- Only words searched at least p_min_term times, so a one-off entry can't identify anyone.
     'searches', coalesce((
       select jsonb_agg(jsonb_build_object('term', search_term, 'count', n, 'zero', zero) order by n desc, search_term)

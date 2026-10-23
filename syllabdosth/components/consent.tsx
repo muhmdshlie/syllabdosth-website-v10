@@ -63,7 +63,10 @@ export function ConsentManager({ ga, pixel }: { ga: string; pixel: string }) {
     if (!next.analytics) clearCookies((n) => n === VISITOR_COOKIE || n === '_gid' || n.startsWith('_ga'));
     if (!next.marketing) clearCookies((n) => n === '_fbp' || n === '_fbc');
     setPrefs(false);
-    if (consent?.analytics && !next.analytics && ga) gtag('consent', 'update', { analytics_storage: 'denied' });
+    if (consent?.analytics && !next.analytics && ga) {
+      gaSending(ga, false); // stop at once, before the reload
+      gtag('consent', 'update', { analytics_storage: 'denied' });
+    }
     // Google / Meta scripts can't be unloaded once running; a reload stops them.
     if ((consent?.analytics && !next.analytics && ga) || (consent?.marketing && !next.marketing && pixel)) {
       location.reload();
@@ -220,9 +223,20 @@ const reportVital = (m: { name: string; value: number }) => {
   beacon({ k: 'vital', u: loadPath, m: m.name, v, t: navigator.maxTouchPoints > 1 });
 };
 
-/** Core Web Vitals (page speed) for the admin dashboard, only with analytics consent like the page views. */
+/** Core Web Vitals (page speed) and script errors for the admin dashboard, only with analytics consent like the page views. */
 function SiteHealth() {
   useReportWebVitals(reportVital);
+  useEffect(() => {
+    const seen = new Set<string>();
+    const onError = (e: ErrorEvent) => {
+      // Only the website's own scripts (browser extensions and other sites' scripts are not our errors); once per page.
+      if (!e.filename?.startsWith(`${location.origin}/_next/`) || seen.has(location.pathname)) return;
+      seen.add(location.pathname);
+      beacon({ k: 'error', u: location.pathname, t: navigator.maxTouchPoints > 1 });
+    };
+    window.addEventListener('error', onError);
+    return () => window.removeEventListener('error', onError);
+  }, []);
   return null;
 }
 
@@ -232,16 +246,38 @@ export function reportSiteError() {
   beacon({ k: 'error', u: location.pathname, t: navigator.maxTouchPoints > 1 });
 }
 
-// Google gets the page path only: no query string (except utm_ campaign tags), private pages hidden,
-// certificate codes collapsed. Page views are sent here, not by Google's automatic tracking.
+// Google gets the page path only: no query string (except cleaned campaign tags), private pages hidden,
+// certificate codes collapsed, and a cleaned referrer. Page views are sent here, not by Google's automatic tracking.
 function gtag(..._args: unknown[]) {
   const w = window as unknown as { dataLayer?: unknown[] };
   // eslint-disable-next-line prefer-rest-params
   (w.dataLayer ||= []).push(arguments); // gtag.js expects the arguments object itself
 }
 
+/** Google's own off switch: while set, gtag.js sends nothing for this ID (used on private pages and on withdrawal). */
+const gaSending = (id: string, on: boolean) => { (window as unknown as Record<string, boolean>)[`ga-disable-${id}`] = !on; };
+
+// utm_term is left out: it often carries the search words of an ad click.
+const UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_id'];
+const utmTags = (search: string) => new URLSearchParams(
+  [...new URLSearchParams(search)].filter(([k]) => UTM_KEYS.includes(k))
+    .map(([k, v]) => [k, v.toLowerCase().replace(/[^a-z0-9._-]/g, '').slice(0, 60)]).filter(([, v]) => v),
+).toString();
+
+/** The referrer Google may see: our own pages cleaned like page_location, other sites as their address only. */
+function cleanReferrer(ref: string) {
+  try {
+    const u = new URL(ref);
+    if (u.origin !== location.origin) return `${u.origin}/`;
+    return `${location.origin}${publicPath(u.pathname) ?? '/private'}`;
+  } catch {
+    return '';
+  }
+}
+
 let gaConfigured = false;
 let gaLast = { key: '', at: 0 };
+let gaPrev: string | null = null; // page_location of the previous page view, the referrer for the next one
 
 function GoogleAnalytics({ id }: { id: string }) {
   const pathname = usePathname();
@@ -254,10 +290,16 @@ function GoogleAnalytics({ id }: { id: string }) {
   useEffect(() => {
     const clean = publicPath(pathname);
     const hidden = clean === null;
+    gaSending(id, !hidden); // nothing at all from private pages, not even scroll or click events
     const path = clean ?? '/private';
-    const utm = new URLSearchParams([...new URLSearchParams(location.search)].filter(([k]) => k.startsWith('utm_'))).toString();
-    const page = { page_location: `${location.origin}${path}${utm ? `?${utm}` : ''}`, page_title: hidden ? 'Private page' : document.title };
+    const utm = utmTags(location.search);
+    const page = {
+      page_location: `${location.origin}${path}${utm ? `?${utm}` : ''}`,
+      page_referrer: gaPrev ?? cleanReferrer(document.referrer),
+      page_title: hidden ? 'Private page' : document.title,
+    };
     gtag('set', page); // also used by Google's scroll and click events on this page
+    gaPrev = page.page_location;
     if (hidden || (gaLast.key === path && Date.now() - gaLast.at < 1500)) return;
     gaLast = { key: path, at: Date.now() };
     gtag('event', 'page_view', page);

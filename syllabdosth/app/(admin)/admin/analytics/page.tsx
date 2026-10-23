@@ -5,7 +5,7 @@ import { BarChart } from '@/components/admin/charts';
 import { Card, PageHeader } from '@/components/admin/ui';
 import { allRecords, countRecords } from '@/lib/admin/crud';
 import { RESOURCES } from '@/lib/admin/resources';
-import { MIN_TERM_COUNT, VITALS, siteAnalytics, type AnalyticsSummary, type Device, type Medium } from '@/lib/analytics';
+import { MIN_TERM_COUNT, VITALS, siteAnalytics, type AnalyticsSummary, type Browser, type Device, type Medium } from '@/lib/analytics';
 import { requireRole } from '@/lib/auth';
 import { todayIST } from '@/lib/format';
 
@@ -23,6 +23,7 @@ const dateLabel = (d: string, o: Intl.DateTimeFormatOptions) => new Date(`${d}T0
 
 const MEDIUM: Record<Medium, string> = { direct: 'Direct / typed', search: 'Search engine', social: 'Social media', referral: 'Other website', campaign: 'Campaign link', email: 'Email' };
 const DEVICE: Record<Device, string> = { mobile: 'Mobile', tablet: 'Tablet', desktop: 'Desktop' };
+const BROWSER: Record<Browser, string> = { chrome: 'Chrome', safari: 'Safari', edge: 'Edge', firefox: 'Firefox', samsung: 'Samsung Internet', opera: 'Opera', in_app: 'In-app (Instagram, Facebook…)', other: 'Other' };
 const GRAINS = { day: 'Daily', week: 'Weekly', month: 'Monthly' } as const;
 type Grain = keyof typeof GRAINS;
 
@@ -154,6 +155,7 @@ function Dashboard({ data, prev, from, to, grain, title }: { data: AnalyticsSumm
   const t = data.totals;
   const p = prev?.totals;
   const deviceTotal = data.devices.reduce((a, d) => a + d.visitors, 0);
+  const browserTotal = data.browsers.reduce((a, b) => a + b.visitors, 0);
   const visitsTotal = data.sources.reduce((a, s) => a + s.visits, 0);
   const empty = <p className="text-[14px] text-adm-muted">Nothing in this period.</p>;
 
@@ -167,7 +169,7 @@ function Dashboard({ data, prev, from, to, grain, title }: { data: AnalyticsSumm
         <Tile label="Visits" value={n(t.sessions)} note={<Change now={t.sessions} before={p?.sessions} />} />
         <Tile label="New / returning" value={`${n(t.visitors - t.returning)} / ${n(t.returning)}`} note={`${pct(t.returning, t.visitors)} returning`} />
         <Tile label="One-page visits" value={pct(t.singlePage, t.sessions)} note={`${n(t.singlePage)} of ${n(t.sessions)} visits`} />
-        <Tile label="Visits that sent a form" value={n(t.converted)} note={`${pct(t.converted, t.sessions)} of visits · enquiry, booking, group or application`} />
+        <Tile label="Visits reaching a confirmation page" value={n(t.converted)} note={`${pct(t.converted, t.sessions)} of visits · enquiry, booking, group or application`} />
       </div>
 
       <Card title={`${GRAINS[grain]} trend`} className="mb-6">
@@ -180,41 +182,41 @@ function Dashboard({ data, prev, from, to, grain, title }: { data: AnalyticsSumm
           <ol className="space-y-4">
             <Step label="Viewed a course" value={data.funnel.viewed} of={data.funnel.viewed} />
             <Step label="Opened the enrolment form" value={data.funnel.started} of={data.funnel.viewed} />
-            <Step label="Sent an enquiry" value={data.funnel.sent} of={data.funnel.viewed} />
+            <Step label="Reached “enquiry sent”" value={data.funnel.sent} of={data.funnel.viewed} />
           </ol>
         </Card>
         <Card title="Service booking">
           <ol className="space-y-4">
             <Step label="Viewed a service" value={data.funnels.serviceViewed} of={data.funnels.serviceViewed} />
-            <Step label="Sent a booking request" value={data.funnels.bookingSent} of={data.funnels.serviceViewed} />
+            <Step label="Reached “request sent”" value={data.funnels.bookingSent} of={data.funnels.serviceViewed} />
           </ol>
         </Card>
         <Card title="Group booking">
           <ol className="space-y-4">
             <Step label="Opened the group form" value={data.funnels.groupOpened} of={data.funnels.groupOpened} />
-            <Step label="Sent a group enquiry" value={data.funnels.groupSent} of={data.funnels.groupOpened} />
+            <Step label="Reached “enquiry sent”" value={data.funnels.groupSent} of={data.funnels.groupOpened} />
           </ol>
         </Card>
         <Card title="Applications">
           <ol className="space-y-4">
             <Step label="Opened an application" value={data.funnels.applyOpened} of={data.funnels.applyOpened} />
-            <Step label="Sent it" value={data.funnels.applySent} of={data.funnels.applyOpened} />
+            <Step label="Reached “application sent”" value={data.funnels.applySent} of={data.funnels.applyOpened} />
           </ol>
         </Card>
       </div>
-      <p className="-mt-3 mb-6 text-[12px] text-adm-muted">Funnels count visitors who allowed analytics, so they are lower than the business results above.</p>
+      <p className="-mt-3 mb-6 text-[12px] text-adm-muted">Funnels count visitors who allowed analytics and who reached each page; the last step is the confirmation page shown after a form is saved. They are estimates and lower than reality. Real enquiries, bookings and enrolments are the business results above, counted from your records.</p>
 
       <h2 className="mb-4 text-[17px] font-semibold">Where visitors come from</h2>
       <div className="mb-6 grid gap-6 xl:grid-cols-3">
         <Card title="Traffic sources">
           {data.sources.length ? (
             <ul className="space-y-3">
-              {data.sources.map((s) => <Share key={`${s.source}|${s.medium}`} label={s.source === 'direct' ? 'Direct / typed' : s.source} sub={s.source === 'direct' ? undefined : MEDIUM[s.medium]} value={s.visits} total={visitsTotal} extra={s.converted ? `${n(s.converted)} sent a form` : undefined} />)}
+              {data.sources.map((s) => <Share key={`${s.source}|${s.medium}`} label={s.source === 'direct' ? 'Direct / typed' : s.source} sub={s.source === 'direct' ? undefined : MEDIUM[s.medium]} value={s.visits} total={visitsTotal} extra={s.converted ? `${n(s.converted)} reached a confirmation page` : undefined} />)}
             </ul>
           ) : empty}
         </Card>
         <Card title="Campaigns (utm_campaign)" pad={false}>
-          <Table head={['Campaign', 'Visits', 'Sent a form']} rows={data.campaigns.map((c) => [
+          <Table head={['Campaign', 'Visits', 'Confirmation page']} rows={data.campaigns.map((c) => [
             <span key="c"><span className="font-medium">{c.campaign}</span><span className="ml-2 text-[12px] text-adm-muted">{c.source}</span></span>, n(c.visits), `${n(c.converted)} (${pct(c.converted, c.visits)})`,
           ])} />
         </Card>
@@ -229,7 +231,7 @@ function Dashboard({ data, prev, from, to, grain, title }: { data: AnalyticsSumm
           <Table head={['Page', 'Views', 'Visitors']} rows={data.pages.map((x) => [<Path key="p" path={x.path} />, n(x.views), n(x.visitors)])} />
         </Card>
         <Card title="Popular courses" pad={false}>
-          <Table head={['Course', 'Views', 'Opened form', 'Sent']}
+          <Table head={['Course', 'Views', 'Opened form', 'Confirmation page']}
             rows={data.courses.map((c) => [title.get(c.slug) ?? c.slug, n(c.views), n(c.starts), n(c.sent)])} />
         </Card>
         <Card title="Popular services" pad={false}>
@@ -245,12 +247,17 @@ function Dashboard({ data, prev, from, to, grain, title }: { data: AnalyticsSumm
 
       <h2 className="mb-4 text-[17px] font-semibold">Devices and site health</h2>
       <div className="grid gap-6 xl:grid-cols-3">
-        <Card title="Devices">
+        <Card title="Devices and browsers">
           {data.devices.length ? (
             <ul className="space-y-3">
               {data.devices.map((d) => <Share key={d.device} label={DEVICE[d.device]} value={d.visitors} total={deviceTotal} sub="visitors" />)}
             </ul>
           ) : empty}
+          {data.browsers.length > 0 && (
+            <ul className="mt-5 space-y-3 border-t border-adm-line pt-5">
+              {data.browsers.map((b) => <Share key={b.browser} label={BROWSER[b.browser] ?? b.browser} value={b.visitors} total={browserTotal} sub="visitors" />)}
+            </ul>
+          )}
         </Card>
         <Card title="Page speed (Core Web Vitals)" pad={false}>
           <Table head={['Measure', '75% of loads under', 'Good']} rows={data.vitals.map((v) => {

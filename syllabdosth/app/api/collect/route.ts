@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { z } from 'zod';
-import { classify, cleanPath, deviceFrom, isBot, recordEvent, recordHealth, sourceFrom } from '@/lib/analytics';
+import { browserFrom, classify, cleanPath, deviceFrom, isBot, recordEvent, recordHealth, sourceFrom } from '@/lib/analytics';
 import { CONSENT_COOKIE, VISITOR_COOKIE, parseConsent, parseVisitor } from '@/lib/consent';
 import { todayIST } from '@/lib/format';
 
@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
     await recordEvent({
       day, visitor_id: visitor.id, is_returning: visitor.firstSeen < day, path, page_kind: kind, course_slug: course,
       search_term: term, search_results: kind === 'search' ? body.n ?? null : null,
-      landing, source: from?.source ?? null, medium: from?.medium ?? null, campaign: from?.campaign ?? null, device: deviceFrom(ua, !!body.t),
+      landing, source: from?.source ?? null, medium: from?.medium ?? null, campaign: from?.campaign ?? null, device: deviceFrom(ua, !!body.t), browser: browserFrom(ua),
     });
   } catch {
     // Analytics must never break the website (e.g. before the migration has run).
