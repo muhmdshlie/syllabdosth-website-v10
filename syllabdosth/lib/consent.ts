@@ -10,6 +10,8 @@ export const CONSENT_MAX_AGE = 60 * 60 * 24 * 180; // ask again after 6 months
 export const VISITOR_MAX_AGE = 60 * 60 * 24 * 365;
 /** Fired on window to reopen the preferences dialog (footer link, cookie policy page). */
 export const OPEN_PREFS_EVENT = 'sd:cookie-preferences';
+/** Private areas and personal pages (someone's booking): never sent to any analytics. */
+export const PRIVATE_PATH = /^\/(admin|dashboard|account|auth|api|bookings|forgot-password)(\/|$)/;
 
 export type Consent = { analytics: boolean; marketing: boolean; at: number };
 

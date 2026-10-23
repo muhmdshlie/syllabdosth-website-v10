@@ -9,7 +9,7 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import Script from 'next/script';
 import { Suspense, useEffect, useRef, useState, type ReactNode } from 'react';
 import {
-  CONSENT_COOKIE, CONSENT_MAX_AGE, OPEN_PREFS_EVENT, VISITOR_COOKIE, VISITOR_MAX_AGE, parseConsent, parseVisitor, serializeConsent, type Consent,
+  CONSENT_COOKIE, CONSENT_MAX_AGE, OPEN_PREFS_EVENT, PRIVATE_PATH, VISITOR_COOKIE, VISITOR_MAX_AGE, parseConsent, parseVisitor, serializeConsent, type Consent,
 } from '@/lib/consent';
 
 type Choice = Pick<Consent, 'analytics' | 'marketing'>;
@@ -62,6 +62,7 @@ export function ConsentManager({ ga, pixel }: { ga: string; pixel: string }) {
     if (!next.analytics) clearCookies((n) => n === VISITOR_COOKIE || n === '_gid' || n.startsWith('_ga'));
     if (!next.marketing) clearCookies((n) => n === '_fbp' || n === '_fbc');
     setPrefs(false);
+    if (consent?.analytics && !next.analytics && ga) gtag('consent', 'update', { analytics_storage: 'denied' });
     // Google / Meta scripts can't be unloaded once running; a reload stops them.
     if ((consent?.analytics && !next.analytics && ga) || (consent?.marketing && !next.marketing && pixel)) {
       location.reload();
@@ -75,12 +76,7 @@ export function ConsentManager({ ga, pixel }: { ga: string; pixel: string }) {
       {ready && !consent && !prefs && <Banner marketing={!!pixel} onSave={save} onCustomize={() => setPrefs(true)} />}
       <Preferences open={prefs} consent={consent} ga={!!ga} marketing={!!pixel} onSave={save} onClose={() => setPrefs(false)} />
       {consent?.analytics && <Suspense fallback={null}><PageTracker /></Suspense>}
-      {consent?.analytics && ga && (
-        <>
-          <Script src={`https://www.googletagmanager.com/gtag/js?id=${ga}`} strategy="afterInteractive" />
-          <Script id="ga" strategy="afterInteractive">{`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','${ga}');`}</Script>
-        </>
-      )}
+      {consent?.analytics && ga && <GoogleAnalytics id={ga} />}
       {consent?.marketing && pixel && <Script id="fb-pixel" strategy="afterInteractive">{`!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','${pixel}');fbq('track','PageView');`}</Script>}
     </>
   );
@@ -209,4 +205,36 @@ function PageTracker() {
     fetch('/api/collect', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body), keepalive: true, credentials: 'same-origin' }).catch(() => undefined);
   }, [pathname, search]);
   return null;
+}
+
+// Google gets the page path only: no query string (except utm_ campaign tags), private pages hidden,
+// certificate codes collapsed. Page views are sent here, not by Google's automatic tracking.
+function gtag(..._args: unknown[]) {
+  const w = window as unknown as { dataLayer?: unknown[] };
+  // eslint-disable-next-line prefer-rest-params
+  (w.dataLayer ||= []).push(arguments); // gtag.js expects the arguments object itself
+}
+
+let gaConfigured = false;
+let gaLast = { key: '', at: 0 };
+
+function GoogleAnalytics({ id }: { id: string }) {
+  const pathname = usePathname();
+  useEffect(() => {
+    if (gaConfigured) return; // once per page load (strict mode runs effects twice in development)
+    gaConfigured = true;
+    gtag('js', new Date());
+    gtag('config', id, { send_page_view: false, allow_google_signals: false, allow_ad_personalization_signals: false });
+  }, [id]);
+  useEffect(() => {
+    const hidden = PRIVATE_PATH.test(pathname);
+    const path = hidden ? '/private' : pathname.replace(/^\/certificates\/[^/]+/, '/certificates/[code]');
+    const utm = new URLSearchParams([...new URLSearchParams(location.search)].filter(([k]) => k.startsWith('utm_'))).toString();
+    const page = { page_location: `${location.origin}${path}${utm ? `?${utm}` : ''}`, page_title: hidden ? 'Private page' : document.title };
+    gtag('set', page); // also used by Google's scroll and click events on this page
+    if (hidden || (gaLast.key === path && Date.now() - gaLast.at < 1500)) return;
+    gaLast = { key: path, at: Date.now() };
+    gtag('event', 'page_view', page);
+  }, [pathname, id]);
+  return <Script src={`https://www.googletagmanager.com/gtag/js?id=${id}`} strategy="afterInteractive" />;
 }

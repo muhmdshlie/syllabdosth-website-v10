@@ -6,6 +6,7 @@ import 'server-only';
  * where the visitor came from. No IP address, user agent, names, emails or form contents are stored.
  */
 import { isDemo } from './config';
+import { PRIVATE_PATH as PRIVATE } from './consent';
 import { todayIST } from './format';
 import { newId, table } from './store';
 import { createAdminClient } from './supabase/server';
@@ -19,8 +20,6 @@ export type AnalyticsEvent = {
   search_term: string | null; search_results: number | null; landing: boolean; source: string | null; medium: Medium | null; device: Device;
 };
 
-// Private areas and personal pages (someone's booking) are never recorded.
-const PRIVATE = /^\/(admin|dashboard|account|auth|api|bookings|forgot-password)(\/|$)/;
 const SAFE_PATH = /^\/[A-Za-z0-9\-._/[\]]*$/;
 
 /** Path without query string, or null when it must not be recorded. Codes in URLs are collapsed. */
