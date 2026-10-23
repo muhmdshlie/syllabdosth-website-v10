@@ -66,6 +66,13 @@ async function prefs(page, analytics) {
   await setGa(admin, true, GA_ID);
   ck('Admin → Addon saves the Measurement ID', (await admin.inputValue('#f-analytics-id')) === GA_ID);
 
+  // 0. Dashboard with an empty database (nothing recorded yet on this fresh demo server).
+  await admin.goto(`${S}/admin/analytics`);
+  const emptyText = await admin.locator('main').innerText();
+  ck('Empty database: dashboard renders', await admin.getByTestId('analytics-dashboard').isVisible());
+  ck('Empty database: empty states shown', emptyText.includes('Nothing in this period.'));
+  ck('Empty database: zero page views, no invented numbers', /Page views\s+0\b/.test(emptyText), emptyText.slice(emptyText.indexOf('Page views'), emptyText.indexOf('Page views') + 40));
+
   // 1. Before any choice: nothing optional runs.
   const v = await visitor(browser);
   await v.page.goto(`${S}/`);
@@ -109,11 +116,28 @@ async function prefs(page, analytics) {
   ck('Re-saving consent loads no second script', v.log.gtm.filter((u) => u.includes('gtag/js')).length === 1);
 
   // 6. URL privacy on a full page load with a query string.
-  await v.page.goto(`${S}/courses?q=priya%40example.com&utm_source=Insta&utm_campaign=diwali&next=/dashboard`);
+  await v.page.goto(`${S}/courses?q=priya%40example.com&utm_source=Insta&utm_campaign=Diwali%20Sale&utm_term=secretword&next=/dashboard`);
   await wait(1500);
-  ck('Query string stripped except utm_ tags', JSON.stringify(await v.views()) === JSON.stringify([`${S}/courses?utm_source=Insta&utm_campaign=diwali`]), JSON.stringify(await v.views()));
+  ck('Query string stripped; utm tags cleaned; utm_term dropped', JSON.stringify(await v.views()) === JSON.stringify([`${S}/courses?utm_source=insta&utm_campaign=diwalisale`]), JSON.stringify(await v.views()));
   const all = JSON.stringify(await v.gtag());
-  ck('No email or search words in anything sent to Google', !all.includes('priya') && !all.includes('example.com'), all.slice(0, 300));
+  ck('No email or search words in anything sent to Google', !all.includes('priya') && !all.includes('example.com') && !all.includes('secretword'), all.slice(0, 300));
+
+  // 6b. Referrers: our private pages and other sites' paths never reach Google.
+  await v.page.goto(`${S}/about`, { referer: `${S}/account/reset-password?code=SECRET123` });
+  await wait(1500);
+  let ev = (await v.gtag()).filter((e) => e.c === 'event' && e.x === 'page_view');
+  ck('Referrer from our private page sent as /private', ev.length === 1 && ev[0].y.page_referrer === `${S}/private`, JSON.stringify(ev));
+  ck('Reset code never in anything sent to Google', !JSON.stringify(await v.gtag()).includes('SECRET123'));
+  await v.page.goto(`${S}/help`, { referer: 'https://mail.example.org/inbox?msg=SECRET456' });
+  await wait(1500);
+  ev = (await v.gtag()).filter((e) => e.c === 'event' && e.x === 'page_view');
+  ck('Referrer from another site sent as its address only', ev.length === 1 && ev[0].y.page_referrer === 'https://mail.example.org/', JSON.stringify(ev));
+  await v.page.locator('a[href="/about"]').first().click();
+  await v.page.waitForURL(`${S}/about`);
+  await wait(1200);
+  ev = (await v.gtag()).filter((e) => e.c === 'event' && e.x === 'page_view');
+  ck('Client-side navigation: referrer is the previous cleaned page', ev.length === 2 && ev[1].y.page_referrer === `${S}/help`, JSON.stringify(ev.map((e) => e.y)));
+  ck('Page titles follow the page', ev.length === 2 && ev[0].y.page_title !== ev[1].y.page_title, JSON.stringify(ev.map((e) => e.y.page_title)));
 
   // 7. Personal pages.
   await v.page.goto(`${S}/bookings/7d1c2f3e-1111-4222-8333-444455556666/sent`);
@@ -129,7 +153,13 @@ async function prefs(page, analytics) {
   const dash = await v.gtag();
   ck('Dashboard: no page view', dash.filter((e) => e.c === 'event').length === 0, JSON.stringify(dash.filter((e) => e.c === 'event')));
   ck('Dashboard: reported only as /private', dash.filter((e) => e.c === 'set').every((e) => e.x.page_location === `${S}/private` && e.x.page_title === 'Private page'));
-  ck('Dashboard: no first-party beacon recorded path', true); // the server drops private paths (see analytics-unit.js)
+  ck('Dashboard: Google switched off (ga-disable)', await v.page.evaluate((id) => window[`ga-disable-${id}`] === true, GA_ID));
+  await v.page.locator('a[href="/courses"]').first().click();
+  await v.page.waitForURL(`${S}/courses`);
+  await wait(1200);
+  ev = (await v.gtag()).filter((e) => e.c === 'event' && e.x === 'page_view');
+  ck('Back on a public page: Google on again, one page view, referrer /private',
+    (await v.page.evaluate((id) => window[`ga-disable-${id}`] === false, GA_ID)) && ev.length === 1 && ev[0].y.page_referrer === `${S}/private`, JSON.stringify(ev.map((e) => e.y)));
 
   // 8. Withdraw consent: Google is told, the page reloads, cookies go, nothing loads again.
   await v.page.goto(`${S}/about`);
@@ -137,12 +167,17 @@ async function prefs(page, analytics) {
   await v.page.evaluate(() => {
     document.cookie = '_ga=GA1.1.123.456; Path=/';
     const push = window.dataLayer.push.bind(window.dataLayer);
-    window.dataLayer.push = (a) => { sessionStorage.setItem('last-gtag', JSON.stringify(Array.from(a))); return push(a); };
+    window.dataLayer.push = (a) => {
+      sessionStorage.setItem('last-gtag', JSON.stringify(Array.from(a)));
+      sessionStorage.setItem('ga-off', String(window['ga-disable-G-P6WR6990K2']));
+      return push(a);
+    };
   });
   const before = v.log.gtm.length;
   await Promise.all([v.page.waitForEvent('load'), prefs(v.page, false)]);
   await wait(1500);
   ck('Withdrawal sends consent denied to Google', (await v.page.evaluate(() => sessionStorage.getItem('last-gtag'))) === JSON.stringify(['consent', 'update', { analytics_storage: 'denied' }]));
+  ck('Withdrawal switches Google off before telling it', (await v.page.evaluate(() => sessionStorage.getItem('ga-off'))) === 'true');
   ck('Withdrawal saves analytics off', (await v.cookie('sd_consent'))?.startsWith('1.a0.'));
   ck('Withdrawal deletes _ga and the visitor ID', !(await v.cookie('_ga')) && !(await v.cookie('sd_vid')));
   ck('No Google script after withdrawal', v.log.gtm.length === before && (await v.gtag()).length === 0);
@@ -185,6 +220,8 @@ async function prefs(page, analytics) {
   ck('Error with consent recorded', /\/contact\s+\d/.test(errTable), errTable);
   ck('Error without consent not recorded', errIdx >= 0 && !errTable.includes('/help'), errTable);
   ck('No payment figures invented', text.includes('Online payments aren’t switched on'));
+  ck('Browsers listed', text.includes('Chrome'));
+  ck('Funnel end labelled as a confirmation page, not a completed booking', text.includes('Visits reaching a confirmation page') && !text.includes('sent a form'));
   for (const g of ['week', 'month']) {
     await admin.goto(`${S}/admin/analytics?g=${g}`);
     ck(`${g === 'week' ? 'Weekly' : 'Monthly'} trend renders`, (await admin.locator('main').innerText()).includes(g === 'week' ? 'Weekly trend' : 'Monthly trend'));

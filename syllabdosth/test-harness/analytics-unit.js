@@ -55,11 +55,24 @@ ck('utm campaign cleaned', A.sourceFrom('', { source: 'Instagram', medium: 'paid
 ck('campaign needs utm_source', A.sourceFrom('', { campaign: 'x' }, 'syllabdosth.com'), { source: 'direct', medium: 'direct' });
 ck('search engine', A.sourceFrom('https://www.google.com/search?q=secret', {}, 'syllabdosth.com'), { source: 'google.com', medium: 'search' });
 
+// Browser family only.
+const UA = {
+  chrome: 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36',
+  safari: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1',
+  edge: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Edg/130.0.0.0',
+  samsung: 'Mozilla/5.0 (Linux; Android 14; SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/25.0 Chrome/121.0.0.0 Mobile Safari/537.36',
+  firefox: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:131.0) Gecko/20100101 Firefox/131.0',
+  in_app: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Instagram 345.0.0',
+  opera: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 OPR/115.0.0.0',
+};
+for (const [want, ua] of Object.entries(UA)) ck(`browser ${want}`, A.browserFrom(ua), want);
+ck('browser other', A.browserFrom('SomethingElse/1.0'), 'other');
+
 // Summary (demo-mode mirror of the SQL function).
 const ev = (visitor, min, path, page_kind, extra = {}) => ({
   day: extra.day ?? '2026-10-20', visitor_id: visitor, is_returning: false, path, page_kind, course_slug: extra.course ?? null,
   search_term: extra.term ?? null, search_results: null, landing: !!extra.landing, source: extra.source ?? null, medium: extra.medium ?? null,
-  campaign: extra.campaign ?? null, device: extra.device ?? 'mobile', created_at: new Date(Date.parse('2026-10-20T04:00:00Z') + min * 60_000).toISOString(), id: String(min).padStart(5, '0'),
+  campaign: extra.campaign ?? null, device: extra.device ?? 'mobile', browser: extra.browser ?? 'chrome', created_at: new Date(Date.parse('2026-10-20T04:00:00Z') + min * 60_000).toISOString(), id: String(min).padStart(5, '0'),
 });
 const rows = [
   // Visitor a: one visit from an Instagram campaign that ends in a course enquiry, then a second visit 45 minutes later.
@@ -101,6 +114,7 @@ ck('LCP p75 like percentile_cont', s.vitals.find((v) => v.metric === 'LCP'), { m
 ck('CLS poor', s.vitals.find((v) => v.metric === 'CLS').poor, 1);
 ck('slow pages need 3 samples', s.slowPages, [{ path: '/', samples: 4, p75: 3500 }]);
 ck('errors in range only', s.errors, [{ path: '/courses', count: 1 }]);
+ck('browsers', s.browsers, [{ browser: 'chrome', visitors: 4, views: 10 }]);
 
 // Before the v2 migration the SQL function returns the v1 shape: the dashboard still gets every key.
 const v1 = A.withDefaults({ totals: { views: 1, visitors: 1, returning: 0, visits: 1, courseViews: 0, searches: 0 }, daily: [{ day: '2026-10-20', views: 1, visitors: 1 }], pages: [], courses: [], sources: [{ source: 'direct', medium: 'direct', visits: 1 }], devices: [], searches: [], funnel: { viewed: 0, started: 0, sent: 0 } });
