@@ -186,6 +186,20 @@ async function prefs(page, analytics) {
   await wait(1200);
   ck('No beacons after withdrawal', v.log.beacons.length === beaconsBefore);
 
+  // 8b. Withdrawn in another tab: this tab stops sending to Google on its next page change.
+  const two = await visitor(browser);
+  await two.page.goto(`${S}/about`);
+  await accept(two.page);
+  await wait(1500);
+  const other = await two.ctx.newPage();
+  await other.goto(`${S}/help`);
+  await Promise.all([other.waitForEvent('load'), prefs(other, false)]);
+  await two.page.locator('a[href="/courses"]').first().click();
+  await two.page.waitForURL(`${S}/courses`);
+  await wait(1200);
+  ck('Other tab: Google switched off after withdrawal elsewhere', await two.page.evaluate((id) => window[`ga-disable-${id}`] === true, GA_ID));
+  ck('Other tab: no page view after withdrawal elsewhere', (await two.views()).length === 1, JSON.stringify(await two.views()));
+
   // 9. Page speed beacons only came with consent.
   ck('Page-speed beacons sent while consent was on', v.log.beacons.some((b) => b.k === 'vital'), JSON.stringify(v.log.beacons.filter((b) => b.k)));
 
@@ -205,8 +219,19 @@ async function prefs(page, analytics) {
   await wait(1200);
   await ok.page.evaluate(() => fetch('/api/collect', { method: 'POST', body: JSON.stringify({ k: 'error', u: '/contact' }), headers: { 'content-type': 'application/json' } }));
 
-  // 12. Dashboard: renders, shows the recorded data, admin only.
-  await admin.goto(`${S}/admin/analytics`);
+  // 12. Dashboard: renders, shows the recorded data, admin only. Opened from the sidebar on a slowed network,
+  // so the loading state has time to show (a local demo server answers too fast otherwise).
+  await admin.goto(`${S}/admin`);
+  await admin.getByRole('button', { name: /Reports/ }).first().click();
+  await admin.locator('a[href="/admin/analytics"]').first().waitFor();
+  await wait(1500); // the link prefetches the loading state
+  const cdp = await adminCtx.newCDPSession(admin);
+  await cdp.send('Network.emulateNetworkConditions', { offline: false, latency: 1500, downloadThroughput: -1, uploadThroughput: -1 });
+  const busy = admin.waitForSelector('[aria-busy="true"]', { state: 'attached', timeout: 8000 }).then(async (el) => (await el.innerText()).includes('Loading the figures'), () => false);
+  await admin.locator('a[href="/admin/analytics"]').first().click();
+  ck('Loading state shown while the dashboard loads', await busy);
+  await admin.getByTestId('analytics-dashboard').waitFor({ timeout: 30000 });
+  await cdp.send('Network.emulateNetworkConditions', { offline: false, latency: 0, downloadThroughput: -1, uploadThroughput: -1 });
   ck('Dashboard renders', await admin.getByTestId('analytics-dashboard').isVisible());
   ck('Business results render', await admin.getByTestId('business-results').isVisible());
   const text = await admin.locator('main').innerText();
@@ -222,6 +247,12 @@ async function prefs(page, analytics) {
   ck('No payment figures invented', text.includes('Online payments aren’t switched on'));
   ck('Browsers listed', text.includes('Chrome'));
   ck('Funnel end labelled as a confirmation page, not a completed booking', text.includes('Visits reaching a confirmation page') && !text.includes('sent a form'));
+  const phone = await adminCtx.newPage();
+  await phone.setViewportSize({ width: 390, height: 900 });
+  await phone.goto(`${S}/admin/analytics`);
+  const phoneWidth = await phone.evaluate(() => document.documentElement.scrollWidth);
+  ck('Dashboard fits a 390px phone (no sideways scrolling)', phoneWidth <= 390, `page is ${phoneWidth}px wide`);
+  await phone.close();
   for (const g of ['week', 'month']) {
     await admin.goto(`${S}/admin/analytics?g=${g}`);
     ck(`${g === 'week' ? 'Weekly' : 'Monthly'} trend renders`, (await admin.locator('main').innerText()).includes(g === 'week' ? 'Weekly trend' : 'Monthly trend'));
