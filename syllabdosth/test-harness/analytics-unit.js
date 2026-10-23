@@ -73,6 +73,9 @@ const rows = [
   // Visitor c: service page then a booking request.
   ev('c', 0, '/services/makeup', 'service', { landing: true, source: 'direct', medium: 'direct' }),
   ev('c', 3, '/bookings/[id]/sent', 'booking_sent'),
+  // Visitor d: types the address, then reloads 5 minutes later: one visit, not two.
+  ev('d', 0, '/', 'page', { landing: true, source: 'direct', medium: 'direct' }),
+  ev('d', 5, '/', 'page', { landing: true, source: 'direct', medium: 'direct' }),
 ];
 const s = A.summarize(rows, '2026-10-01', '2026-11-30', [
   ...[1000, 2000, 3000, 5000].map((v, i) => ({ day: '2026-10-20', path: '/', metric: 'LCP', value: v, device: 'mobile', created_at: `2026-10-20T0${i}:00:00Z` })),
@@ -80,19 +83,19 @@ const s = A.summarize(rows, '2026-10-01', '2026-11-30', [
   { day: '2026-10-20', path: '/courses', metric: 'error', value: 0, device: 'mobile' },
   { day: '2026-12-01', path: '/', metric: 'error', value: 0, device: 'mobile' }, // outside the range
 ]);
-ck('views', s.totals.views, 8);
-ck('visitors', s.totals.visitors, 3);
-ck('visits split after 30 minutes', s.totals.sessions, 4);
+ck('views', s.totals.views, 10);
+ck('visitors', s.totals.visitors, 4);
+ck('visits split after 30 minutes, not on a reload', s.totals.sessions, 5);
 ck('one-page visits', s.totals.singlePage, 2);
 ck('visits with a sent form', s.totals.converted, 2);
-ck('arrivals (v1 meaning kept)', s.totals.visits, 3);
-ck('weeks (Monday start)', s.weekly.map((w) => [w.start, w.visitors]), [['2026-10-19', 2], ['2026-11-02', 1]]);
-ck('months', s.monthly.map((m) => [m.start, m.views]), [['2026-10-01', 7], ['2026-11-01', 1]]);
+ck('arrivals (v1 meaning kept)', s.totals.visits, 5);
+ck('weeks (Monday start)', s.weekly.map((w) => [w.start, w.visitors]), [['2026-10-19', 3], ['2026-11-02', 1]]);
+ck('months', s.monthly.map((m) => [m.start, m.views]), [['2026-10-01', 9], ['2026-11-01', 1]]);
 ck('course funnel', s.funnel, { viewed: 1, started: 1, sent: 1 });
 ck('other funnels', s.funnels, { serviceViewed: 2, bookingSent: 1, groupOpened: 0, groupSent: 0, applyOpened: 0, applySent: 0 });
 ck('campaigns', s.campaigns, [{ campaign: 'diwali', source: 'instagram', medium: 'campaign', visits: 1, converted: 1 }]);
-ck('sources count arrivals only', s.sources.map((x) => [x.source, x.visits, x.converted]), [['direct', 1, 1], ['google.com', 1, 0], ['instagram', 1, 1]]);
-ck('entry pages', s.entries.map((x) => [x.path, x.visits, x.singlePage]), [['/services/makeup', 2, 1], ['/', 1, 0], ['/courses', 1, 1]]);
+ck('sources count arrivals only', s.sources.map((x) => [x.source, x.visits, x.converted]), [['direct', 2, 1], ['google.com', 1, 0], ['instagram', 1, 1]]);
+ck('entry pages', s.entries.map((x) => [x.path, x.visits, x.singlePage]), [['/', 2, 0], ['/services/makeup', 2, 1], ['/courses', 1, 1]]);
 ck('services', s.services.map((x) => [x.path, x.views]), [['/services/makeup', 2]]);
 ck('LCP p75 like percentile_cont', s.vitals.find((v) => v.metric === 'LCP'), { metric: 'LCP', samples: 4, p75: 3500, good: 2, poor: 1 });
 ck('CLS poor', s.vitals.find((v) => v.metric === 'CLS').poor, 1);

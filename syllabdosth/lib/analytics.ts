@@ -114,11 +114,11 @@ export async function recordEvent(e: AnalyticsEvent): Promise<void> {
 export type Vital = 'LCP' | 'INP' | 'CLS' | 'FCP' | 'TTFB';
 /** Google's Core Web Vitals limits: up to `good` is good, above `poor` is poor. ms, except CLS (a score). */
 export const VITALS: Record<Vital, { label: string; good: number; poor: number }> = {
-  CLS: { label: 'Layout shift (CLS)', good: 0.1, poor: 0.25 },
-  FCP: { label: 'First content shown (FCP)', good: 1800, poor: 3000 },
-  INP: { label: 'Response to taps and clicks (INP)', good: 200, poor: 500 },
-  LCP: { label: 'Main content loaded (LCP)', good: 2500, poor: 4000 },
-  TTFB: { label: 'Server response (TTFB)', good: 800, poor: 1800 },
+  CLS: { label: 'Layout shift', good: 0.1, poor: 0.25 },
+  FCP: { label: 'First content', good: 1800, poor: 3000 },
+  INP: { label: 'Tap response', good: 200, poor: 500 },
+  LCP: { label: 'Main content', good: 2500, poor: 4000 },
+  TTFB: { label: 'Server response', good: 800, poor: 1800 },
 };
 
 /** One page-speed measurement or one error, for a cleaned path. No visitor id is stored with it. */
@@ -238,14 +238,15 @@ export function summarize(all: StoredEvent[], from: string, to: string, health: 
   const byDesc = <T>(n: (x: T) => number, s: (x: T) => string) => (a: T, b: T) => n(b) - n(a) || s(a).localeCompare(s(b));
   const counts = (list: StoredEvent[]) => ({ views: list.length, visitors: distinct(list) });
 
-  // A visit starts on an arrival from outside the site, or after 30 minutes without a page view.
+  // A visit starts after 30 minutes without a page view, or on an arrival from another site or a campaign link.
+  // A direct load within 30 minutes (a reload, or the address typed again) stays in the same visit.
   const visits = group(rows, (r) => r.visitor_id).flatMap(([, list]) => {
     const sorted = [...list].sort((a, b) => (a.created_at ?? '').localeCompare(b.created_at ?? '') || String(a.id ?? '').localeCompare(String(b.id ?? '')));
     const out: StoredEvent[][] = [];
     let prev = 0;
     for (const r of sorted) {
       const t = Date.parse(r.created_at ?? '') || 0;
-      if (!out.length || r.landing || t - prev > VISIT_GAP) out.push([]);
+      if (!out.length || t - prev > VISIT_GAP || (r.landing && (r.source ?? 'direct') !== 'direct')) out.push([]);
       out[out.length - 1].push(r);
       prev = t;
     }
