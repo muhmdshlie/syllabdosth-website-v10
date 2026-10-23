@@ -254,6 +254,8 @@ function gtag(..._args: unknown[]) {
   (w.dataLayer ||= []).push(arguments); // gtag.js expects the arguments object itself
 }
 
+const consented = () => !!parseConsent(readCookie(CONSENT_COOKIE))?.analytics;
+
 /** Google's own off switch: while set, gtag.js sends nothing for this ID (used on private pages and on withdrawal). */
 const gaSending = (id: string, on: boolean) => { (window as unknown as Record<string, boolean>)[`ga-disable-${id}`] = !on; };
 
@@ -268,6 +270,7 @@ const utmTags = (search: string) => new URLSearchParams(
 function cleanReferrer(ref: string) {
   try {
     const u = new URL(ref);
+    if (u.origin === 'null') return ''; // app or file referrers have no web address
     if (u.origin !== location.origin) return `${u.origin}/`;
     return `${location.origin}${publicPath(u.pathname) ?? '/private'}`;
   } catch {
@@ -287,9 +290,17 @@ function GoogleAnalytics({ id }: { id: string }) {
     gtag('js', new Date());
     gtag('config', id, { send_page_view: false, allow_google_signals: false, allow_ad_personalization_signals: false });
   }, [id]);
+  // Consent withdrawn in another tab: this tab's state doesn't know, so check the cookie whenever the tab comes back.
+  useEffect(() => {
+    const recheck = () => { if (!consented()) gaSending(id, false); };
+    window.addEventListener('focus', recheck);
+    document.addEventListener('visibilitychange', recheck);
+    return () => { window.removeEventListener('focus', recheck); document.removeEventListener('visibilitychange', recheck); };
+  }, [id]);
   useEffect(() => {
     const clean = publicPath(pathname);
     const hidden = clean === null;
+    if (!consented()) { gaSending(id, false); return; } // withdrawn in another tab
     gaSending(id, !hidden); // nothing at all from private pages, not even scroll or click events
     const path = clean ?? '/private';
     const utm = utmTags(location.search);

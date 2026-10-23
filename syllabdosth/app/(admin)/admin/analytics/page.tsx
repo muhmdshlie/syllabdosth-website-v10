@@ -177,7 +177,7 @@ function Dashboard({ data, prev, from, to, grain, title }: { data: AnalyticsSumm
       </Card>
 
       <h2 className="mb-4 text-[17px] font-semibold">Conversion funnels</h2>
-      <div className="mb-6 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+      <div className="mb-6 grid gap-6 [&>*]:min-w-0 md:grid-cols-2 xl:grid-cols-4">
         <Card title="Course enrolment">
           <ol className="space-y-4">
             <Step label="Viewed a course" value={data.funnel.viewed} of={data.funnel.viewed} />
@@ -207,7 +207,7 @@ function Dashboard({ data, prev, from, to, grain, title }: { data: AnalyticsSumm
       <p className="-mt-3 mb-6 text-[12px] text-adm-muted">Funnels count visitors who allowed analytics and who reached each page; the last step is the confirmation page shown after a form is saved. They are estimates and lower than reality. Real enquiries, bookings and enrolments are the business results above, counted from your records.</p>
 
       <h2 className="mb-4 text-[17px] font-semibold">Where visitors come from</h2>
-      <div className="mb-6 grid gap-6 xl:grid-cols-3">
+      <div className="mb-6 grid gap-6 [&>*]:min-w-0 xl:grid-cols-3">
         <Card title="Traffic sources">
           {data.sources.length ? (
             <ul className="space-y-3">
@@ -226,7 +226,7 @@ function Dashboard({ data, prev, from, to, grain, title }: { data: AnalyticsSumm
       </div>
 
       <h2 className="mb-4 text-[17px] font-semibold">Pages and courses</h2>
-      <div className="mb-6 grid gap-6 xl:grid-cols-2">
+      <div className="mb-6 grid gap-6 [&>*]:min-w-0 xl:grid-cols-2">
         <Card title="Popular pages" pad={false}>
           <Table head={['Page', 'Views', 'Visitors']} rows={data.pages.map((x) => [<Path key="p" path={x.path} />, n(x.views), n(x.visitors)])} />
         </Card>
@@ -246,7 +246,7 @@ function Dashboard({ data, prev, from, to, grain, title }: { data: AnalyticsSumm
       </div>
 
       <h2 className="mb-4 text-[17px] font-semibold">Devices and site health</h2>
-      <div className="grid gap-6 xl:grid-cols-3">
+      <div className="grid gap-6 [&>*]:min-w-0 xl:grid-cols-3">
         <Card title="Devices and browsers">
           {data.devices.length ? (
             <ul className="space-y-3">
