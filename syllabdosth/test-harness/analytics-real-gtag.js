@@ -74,6 +74,8 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
   await wait(6000);
   ck('Back on a public page: page_view sent again with referrer /private', views().at(-1)?.dl === `${S}/courses` && views().at(-1)?.dr === `${S}/private`, JSON.stringify(views().at(-1)));
 
+  const turnedOff = hits.filter((h) => ['view_search_results', 'form_start', 'form_submit'].includes(h.en)).map((h) => h.en);
+  ck('No Site search or form events (switched off in the property)', turnedOff.length === 0, JSON.stringify(turnedOff));
   const everything = hits.map((h) => decodeURIComponent(h.raw)).join('\n');
   if (process.env.DUMP) {
     for (const h of hits) {
