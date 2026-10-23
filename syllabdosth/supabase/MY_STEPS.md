@@ -61,6 +61,8 @@ This only downloads. (The migration doesn't change existing rows, but this is yo
 
 ## Step 4 — READ-ONLY: check the result
 
+The same query is in `supabase/step4_verify.sql` (plain SQL, so you can open it, press Ctrl+A, copy and paste).
+
 ```sql
 select 'one page_kind check, with the new kinds' as check_name,
   (select count(*) = 1 and bool_and(pg_get_constraintdef(oid) like '%apply_sent%') from pg_constraint
