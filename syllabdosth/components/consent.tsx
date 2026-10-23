@@ -1,15 +1,16 @@
 'use client';
 /**
  * Cookie banner + preferences, and everything that may only run after consent:
- * first-party page-view tracking (analytics) and, when switched on in Admin → Addon,
+ * first-party page-view and page-speed tracking (analytics) and, when switched on in Admin → Addon,
  * Google Analytics (analytics) and the Meta Pixel (marketing).
  */
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import Script from 'next/script';
+import { useReportWebVitals } from 'next/web-vitals';
 import { Suspense, useEffect, useRef, useState, type ReactNode } from 'react';
 import {
-  CONSENT_COOKIE, CONSENT_MAX_AGE, OPEN_PREFS_EVENT, PRIVATE_PATH, VISITOR_COOKIE, VISITOR_MAX_AGE, parseConsent, parseVisitor, serializeConsent, type Consent,
+  CONSENT_COOKIE, CONSENT_MAX_AGE, OPEN_PREFS_EVENT, VISITOR_COOKIE, VISITOR_MAX_AGE, parseConsent, parseVisitor, publicPath, serializeConsent, type Consent,
 } from '@/lib/consent';
 
 type Choice = Pick<Consent, 'analytics' | 'marketing'>;
@@ -75,7 +76,7 @@ export function ConsentManager({ ga, pixel }: { ga: string; pixel: string }) {
     <>
       {ready && !consent && !prefs && <Banner marketing={!!pixel} onSave={save} onCustomize={() => setPrefs(true)} />}
       <Preferences open={prefs} consent={consent} ga={!!ga} marketing={!!pixel} onSave={save} onClose={() => setPrefs(false)} />
-      {consent?.analytics && <Suspense fallback={null}><PageTracker /></Suspense>}
+      {consent?.analytics && <Suspense fallback={null}><PageTracker /><SiteHealth /></Suspense>}
       {consent?.analytics && ga && <GoogleAnalytics id={ga} />}
       {consent?.marketing && pixel && <Script id="fb-pixel" strategy="afterInteractive">{`!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','${pixel}');fbq('track','PageView');`}</Script>}
     </>
@@ -202,9 +203,33 @@ function PageTracker() {
       body.r = document.referrer;
       firstView = false;
     }
-    fetch('/api/collect', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body), keepalive: true, credentials: 'same-origin' }).catch(() => undefined);
+    beacon(body);
   }, [pathname, search]);
   return null;
+}
+
+const beacon = (body: object) => {
+  fetch('/api/collect', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body), keepalive: true, credentials: 'same-origin' }).catch(() => undefined);
+};
+
+// Page speed is measured for the page the browser loaded, not later client-side navigations.
+const loadPath = typeof window === 'undefined' ? '' : location.pathname;
+const reportVital = (m: { name: string; value: number }) => {
+  if (!['LCP', 'INP', 'CLS', 'FCP', 'TTFB'].includes(m.name)) return;
+  const v = m.name === 'CLS' ? Math.round(m.value * 1000) / 1000 : Math.round(m.value); // CLS is a score, the rest are ms
+  beacon({ k: 'vital', u: loadPath, m: m.name, v, t: navigator.maxTouchPoints > 1 });
+};
+
+/** Core Web Vitals (page speed) for the admin dashboard, only with analytics consent like the page views. */
+function SiteHealth() {
+  useReportWebVitals(reportVital);
+  return null;
+}
+
+/** Counts an error page (path only, never the error message), only with analytics consent. For app/error.tsx. */
+export function reportSiteError() {
+  if (!parseConsent(readCookie(CONSENT_COOKIE))?.analytics) return;
+  beacon({ k: 'error', u: location.pathname, t: navigator.maxTouchPoints > 1 });
 }
 
 // Google gets the page path only: no query string (except utm_ campaign tags), private pages hidden,
@@ -227,8 +252,9 @@ function GoogleAnalytics({ id }: { id: string }) {
     gtag('config', id, { send_page_view: false, allow_google_signals: false, allow_ad_personalization_signals: false });
   }, [id]);
   useEffect(() => {
-    const hidden = PRIVATE_PATH.test(pathname);
-    const path = hidden ? '/private' : pathname.replace(/^\/certificates\/[^/]+/, '/certificates/[code]');
+    const clean = publicPath(pathname);
+    const hidden = clean === null;
+    const path = clean ?? '/private';
     const utm = new URLSearchParams([...new URLSearchParams(location.search)].filter(([k]) => k.startsWith('utm_'))).toString();
     const page = { page_location: `${location.origin}${path}${utm ? `?${utm}` : ''}`, page_title: hidden ? 'Private page' : document.title };
     gtag('set', page); // also used by Google's scroll and click events on this page

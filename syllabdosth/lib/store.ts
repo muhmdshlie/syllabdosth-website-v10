@@ -126,6 +126,7 @@ const seeds: Record<string, () => Row[]> = {
   ],
   activity_log: () => [],
   analytics_events: () => [],
+  site_vitals: () => [],
 };
 
 const g = globalThis as unknown as { __sdTables?: Record<string, Row[]> };

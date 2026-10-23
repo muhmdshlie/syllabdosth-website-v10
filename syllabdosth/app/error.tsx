@@ -1,5 +1,9 @@
 'use client';
-export default function Error({ reset }: { error: Error; reset: () => void }) {
+import { useEffect } from 'react';
+import { reportSiteError } from '@/components/consent';
+
+export default function Error({ error, reset }: { error: Error; reset: () => void }) {
+  useEffect(() => reportSiteError(), [error]); // counted for Admin → Website analytics, only with analytics consent
   return (
     <main className="container-page py-24">
       <h1 className="h1">Something went wrong.</h1>

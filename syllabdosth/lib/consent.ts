@@ -13,6 +13,14 @@ export const OPEN_PREFS_EVENT = 'sd:cookie-preferences';
 /** Private areas and personal pages (someone's booking): never sent to any analytics. */
 export const PRIVATE_PATH = /^\/(admin|dashboard|account|auth|api|bookings|forgot-password)(\/|$)/;
 
+/** The path analytics may see: personal codes collapsed, null for private pages. */
+export function publicPath(pathname: string): string | null {
+  const p = pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname;
+  if (/^\/bookings\/[^/]+\/sent$/.test(p)) return '/bookings/[id]/sent'; // that a request was sent, never which one
+  if (PRIVATE_PATH.test(p)) return null;
+  return p.replace(/^\/certificates\/[^/]+/, '/certificates/[code]');
+}
+
 export type Consent = { analytics: boolean; marketing: boolean; at: number };
 
 // "1.a1.m0.1761134400" → version 1, analytics on, marketing off, chosen at (unix seconds).
