@@ -6,7 +6,7 @@ import { ServiceDetails, Timeline } from '@/components/booking';
 import { InlineAction } from '@/components/forms';
 import { Arrow, Section } from '@/components/ui';
 import { getSiteSettings } from '@/lib/cms/content';
-import { getCurrentUser } from '@/lib/auth';
+import { requireBookingViewer } from '@/lib/auth';
 import { getBooking, getProfessional, getServiceById } from '@/lib/data';
 import { bookingStatusLabel, fmtDate, fmtTime } from '@/lib/format';
 
@@ -15,7 +15,8 @@ export const metadata: Metadata = { title: 'My booking request', robots: { index
 export default async function BookingPage({ params }: { params: { id: string } }) {
   const [booking, site] = await Promise.all([getBooking(params.id), getSiteSettings()]);
   if (!booking) notFound();
-  const [service, pro, user] = await Promise.all([getServiceById(booking.service_id), getProfessional(booking.professional_id), getCurrentUser()]);
+  const user = await requireBookingViewer(booking.customer_id, `/bookings/${booking.id}`);
+  const [service, pro] = await Promise.all([getServiceById(booking.service_id), getProfessional(booking.professional_id)]);
   if (!service || !pro) notFound();
   const canCancel = booking.status === 'pending' || booking.status === 'confirmed';
   const banner = {

@@ -1,6 +1,6 @@
 import 'server-only';
 import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { isDemo } from './config';
 import { table } from './store';
 import { createAdminClient, createClient } from './supabase/server';
@@ -51,6 +51,17 @@ export async function requireRole(roles: Role[], next = '/dashboard'): Promise<C
  */
 export function requireAdmin(next = '/admin'): Promise<CurrentUser> {
   return requireRole(['admin'], next);
+}
+
+/**
+ * Booking pages: a booking made from an account is shown only to that account or an admin (others are sent
+ * to log in, or get "not found"). A guest booking has no account, so its private link is the only key.
+ */
+export async function requireBookingViewer(customerId: string | null, path: string): Promise<CurrentUser | null> {
+  const user = await getCurrentUser();
+  if (!customerId || user?.id === customerId || user?.profile.role === 'admin') return user;
+  if (!user) redirect(`/login?next=${encodeURIComponent(path)}`);
+  notFound();
 }
 
 export async function requireUser(next = '/dashboard'): Promise<CurrentUser> {
