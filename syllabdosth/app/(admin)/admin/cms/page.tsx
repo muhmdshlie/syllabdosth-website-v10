@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Icon } from '@/components/admin/icons';
 import { PageHeader } from '@/components/admin/ui';
+import { requireAdmin } from '@/lib/auth';
 import { getSavedContent } from '@/lib/cms/content';
 import { CONTENT_DEFS, slugFromContentKey } from '@/lib/cms/schema';
 
@@ -19,6 +20,7 @@ const MORE = [
 ];
 
 export default async function CmsIndex() {
+  await requireAdmin();
   const pages = CONTENT_DEFS.filter((d) => d.kind === 'page');
   const saved = await Promise.all(pages.map((p) => getSavedContent(p.key)));
   return (

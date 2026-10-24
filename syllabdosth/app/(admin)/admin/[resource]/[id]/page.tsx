@@ -12,6 +12,7 @@ import { getRecord, listRecords, relationKeys, relationOptions } from '@/lib/adm
 import { imageFallbacks } from '@/lib/admin/fallbacks';
 import { getResource, RESOURCES } from '@/lib/admin/resources';
 import type { Option, Resource, Row } from '@/lib/admin/types';
+import { requireAdmin } from '@/lib/auth';
 import type { QuizQuestion, TicketMessage } from '@/lib/types';
 
 type Params = { resource: string; id: string };
@@ -22,6 +23,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 }
 
 export default async function EditRecord({ params, searchParams }: { params: Params; searchParams: Record<string, string | undefined> }) {
+  await requireAdmin();
   const r = getResource(params.resource);
   if (!r) notFound();
   const id = decodeURIComponent(params.id);

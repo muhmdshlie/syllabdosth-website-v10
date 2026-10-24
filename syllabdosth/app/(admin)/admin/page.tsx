@@ -5,12 +5,14 @@ import { Icon } from '@/components/admin/icons';
 import { fmtDateTime, fmtDay, StatusBadge } from '@/components/admin/ui';
 import { relationOptions } from '@/lib/admin/crud';
 import { dashboardMetrics } from '@/lib/admin/metrics';
+import { requireAdmin } from '@/lib/auth';
 
 export const metadata: Metadata = { title: 'Dashboard' };
 
 const C = { green: '#27AE7A', orange: '#F4A51C', red: '#F2603E', indigo: '#4F5BD5' };
 
 export default async function AdminDashboard({ searchParams }: { searchParams: { range?: string } }) {
+  await requireAdmin();
   const range = searchParams.range === '30' ? 30 : 7;
   const [m, opts] = await Promise.all([dashboardMetrics(range), relationOptions(['courses'])]);
   const course = (id: unknown) => opts.courses?.find((o) => o.value === String(id))?.label ?? '—';

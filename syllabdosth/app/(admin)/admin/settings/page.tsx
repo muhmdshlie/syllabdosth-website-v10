@@ -1,5 +1,7 @@
 import { redirect } from 'next/navigation';
+import { requireAdmin } from '@/lib/auth';
 
-export default function SettingsIndex() {
+export default async function SettingsIndex() {
+  await requireAdmin();
   redirect('/admin/settings/general');
 }

@@ -45,6 +45,14 @@ export async function requireRole(roles: Role[], next = '/dashboard'): Promise<C
   return user;
 }
 
+/**
+ * Every admin page calls this itself. The admin layout's check is not enough: with partial rendering a
+ * client navigation can render a page without re-running the layout above it.
+ */
+export function requireAdmin(next = '/admin'): Promise<CurrentUser> {
+  return requireRole(['admin'], next);
+}
+
 export async function requireUser(next = '/dashboard'): Promise<CurrentUser> {
   const user = await getCurrentUser();
   if (!user) redirect(`/login?next=${encodeURIComponent(next)}`);

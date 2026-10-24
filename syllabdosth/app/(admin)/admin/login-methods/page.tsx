@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Card, PageHeader, StatusBadge } from '@/components/admin/ui';
+import { requireAdmin } from '@/lib/auth';
 import { isDemo, SITE_URL, SUPABASE_ANON_KEY, SUPABASE_URL } from '@/lib/config';
 
 export const metadata: Metadata = { title: 'Login methods' };
@@ -15,6 +16,7 @@ async function providers(): Promise<Record<string, boolean> | null> {
 }
 
 export default async function LoginMethods() {
+  await requireAdmin();
   const p = await providers();
   const project = isDemo ? '' : new URL(SUPABASE_URL).host.split('.')[0];
   const dash = project ? `https://supabase.com/dashboard/project/${project}/auth/providers` : 'https://supabase.com/dashboard';

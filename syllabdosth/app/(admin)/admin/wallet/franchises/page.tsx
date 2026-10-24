@@ -1,11 +1,13 @@
 import type { Metadata } from 'next';
 import { Card, Empty, Flash, PageHeader, StatusBadge } from '@/components/admin/ui';
+import { requireAdmin } from '@/lib/auth';
 import { formatINR, getFranchiseWallets } from '@/lib/wallet';
 
 export const metadata: Metadata = { title: 'Franchise wallets' };
 export const dynamic = 'force-dynamic';
 
 export default async function FranchiseWalletsPage() {
+  await requireAdmin();
   let wallets: Awaited<ReturnType<typeof getFranchiseWallets>> = [];
   let loadError = '';
   try {

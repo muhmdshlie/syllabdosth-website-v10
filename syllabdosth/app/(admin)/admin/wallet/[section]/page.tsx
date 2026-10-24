@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Card, Empty, Flash, PageHeader } from '@/components/admin/ui';
+import { requireAdmin } from '@/lib/auth';
 
 const SECTIONS: Record<string, { title: string; sub: string; empty: string; text: string }> = {
   franchises: {
@@ -36,7 +37,8 @@ export function generateMetadata({ params }: Params): Metadata {
   return { title: section ? section.title : 'Wallet' };
 }
 
-export default function AdminWalletSectionPage({ params }: Params) {
+export default async function AdminWalletSectionPage({ params }: Params) {
+  await requireAdmin();
   const section = SECTIONS[params.section];
   if (!section) notFound();
 

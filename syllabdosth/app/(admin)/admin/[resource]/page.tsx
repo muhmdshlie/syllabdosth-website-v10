@@ -8,6 +8,7 @@ import { Empty, Flash, PageHeader, Pagination } from '@/components/admin/ui';
 import { listRecords, relationKeys, relationOptions } from '@/lib/admin/crud';
 import { imageFallbacks } from '@/lib/admin/fallbacks';
 import { getResource, groupTabs } from '@/lib/admin/resources';
+import { requireAdmin } from '@/lib/auth';
 
 type SP = Record<string, string | undefined>;
 
@@ -16,6 +17,7 @@ export async function generateMetadata({ params }: { params: { resource: string 
 }
 
 export default async function ResourceList({ params, searchParams }: { params: { resource: string }; searchParams: SP }) {
+  await requireAdmin();
   const r = getResource(params.resource);
   if (!r) notFound();
   const page = Math.max(1, Number(searchParams.page) || 1);

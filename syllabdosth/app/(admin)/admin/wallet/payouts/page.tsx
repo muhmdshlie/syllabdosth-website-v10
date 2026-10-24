@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Card, Empty, Flash, PageHeader, fmtDateTime } from '@/components/admin/ui';
+import { requireAdmin } from '@/lib/auth';
 import { isDemo } from '@/lib/config';
 import { createAdminClient } from '@/lib/supabase/server';
 
@@ -21,6 +22,7 @@ const money = (value: string | number) =>
 const crumbs = [{ href: '/admin/wallet', label: 'Wallet' }, { label: 'Payout requests' }];
 
 export default async function AdminPayoutsPage() {
+  await requireAdmin();
   if (isDemo) {
     return (
       <>

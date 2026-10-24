@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { CommissionForm } from '@/components/admin/commission-form';
 import { Card, Empty, Flash, PageHeader, StatusBadge, fmtDay } from '@/components/admin/ui';
+import { requireAdmin } from '@/lib/auth';
 import { isDemo } from '@/lib/config';
 import { createAdminClient } from '@/lib/supabase/server';
 
@@ -22,6 +23,7 @@ type CommissionRow = {
 const SOURCE_LABEL: Record<string, string> = { enrollment: 'Course enrolment', booking: 'Service booking', other: 'Other' };
 
 export default async function CommissionsPage() {
+  await requireAdmin();
   let franchises: Franchise[] = [];
   let rows: CommissionRow[] = [];
   let loadError = '';
