@@ -161,7 +161,7 @@ const general: ContentDef = {
       { name: 'youtube', label: 'YouTube', type: 'url' }, { name: 'linkedin', label: 'LinkedIn', type: 'url' },
     ]),
   ],
-  defaults: { siteName: 'Syllabdosth', tagline: 'Learn Today, Lead Tomorrow.', phone: '+91 99018 84692', whatsapp: '919901884692', email: 'syllabdosth@gmail.com', site: 'www.syllabdosth.com', address: '', socials: { instagram: '', facebook: '', youtube: '', linkedin: '' } },
+  defaults: { siteName: 'Syllabdosth', tagline: 'Learn Today, Lead Tomorrow.', phone: '+91 99018 84692', whatsapp: '919901884692', email: 'support@syllabdosth.com', site: 'www.syllabdosth.com', address: '', socials: { instagram: '', facebook: '', youtube: '', linkedin: '' } },
 };
 
 const branding: ContentDef = {
