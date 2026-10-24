@@ -6,11 +6,12 @@ import { DemoLogin } from '@/components/demo-login';
 import { Section } from '@/components/ui';
 import { dashboardPathFor, getCurrentUser } from '@/lib/auth';
 import { isDemo } from '@/lib/config';
+import { safePath } from '@/lib/safe-path';
 
 export const metadata: Metadata = { title: 'Log in' };
 
 export default async function LoginPage({ searchParams }: { searchParams: { next?: string; error?: string } }) {
-  const next = searchParams.next?.startsWith('/') && !searchParams.next.startsWith('//') ? searchParams.next : '';
+  const next = safePath(searchParams.next);
   const user = await getCurrentUser();
   if (user) redirect(next || dashboardPathFor(user.profile.role));
   return (

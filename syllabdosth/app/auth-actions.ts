@@ -5,14 +5,12 @@ import { z } from 'zod';
 import type { ActionState } from '@/lib/action-state';
 import { DEMO_ROLE_COOKIE, dashboardPathFor, getCurrentUser } from '@/lib/auth';
 import { SITE_URL, isDemo } from '@/lib/config';
+import { safePath } from '@/lib/safe-path';
 import { createClient } from '@/lib/supabase/server';
 import type { Role } from '@/lib/types';
 
 /** Only allow same-site relative redirects. */
-function safeNext(v: FormDataEntryValue | null) {
-  const s = typeof v === 'string' ? v : '';
-  return s.startsWith('/') && !s.startsWith('//') ? s : '';
-}
+const safeNext = (v: FormDataEntryValue | null) => safePath(v);
 async function goAfterLogin(next: string) {
   if (next) redirect(next);
   const user = await getCurrentUser();

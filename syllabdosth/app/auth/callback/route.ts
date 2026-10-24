@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import type { EmailOtpType } from '@supabase/supabase-js';
+import { safePath } from '@/lib/safe-path';
 import { createClient } from '@/lib/supabase/server';
 
 /**
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest) {
   const tokenHash = searchParams.get('token_hash');
   const type = searchParams.get('type') as EmailOtpType | null;
   const nextParam = searchParams.get('next') ?? (type === 'recovery' ? '/account/reset-password' : '/dashboard');
-  const next = nextParam.startsWith('/') && !nextParam.startsWith('//') ? nextParam : '/dashboard';
+  const next = safePath(nextParam) || '/dashboard';
   const supabase = createClient();
 
   if (code) {

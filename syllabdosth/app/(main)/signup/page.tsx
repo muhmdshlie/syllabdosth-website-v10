@@ -4,11 +4,12 @@ import { LoginPanel } from '@/components/auth-forms';
 import { DemoLogin } from '@/components/demo-login';
 import { Section } from '@/components/ui';
 import { isDemo } from '@/lib/config';
+import { safePath } from '@/lib/safe-path';
 
 export const metadata: Metadata = { title: 'Create account' };
 
 export default function SignupPage({ searchParams }: { searchParams: { next?: string } }) {
-  const next = searchParams.next?.startsWith('/') && !searchParams.next.startsWith('//') ? searchParams.next : '';
+  const next = safePath(searchParams.next);
   return (
     <Section>
       <div className="mx-auto grid max-w-5xl gap-8 lg:grid-cols-2">
