@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import type { ActionState } from '@/lib/action-state';
 import { DEMO_ROLE_COOKIE, dashboardPathFor, getCurrentUser } from '@/lib/auth';
-import { SITE_URL, isDemo } from '@/lib/config';
+import { SITE_URL, demoAuth, isDemo } from '@/lib/config';
 import { safePath } from '@/lib/safe-path';
 import { createClient } from '@/lib/supabase/server';
 import type { Role } from '@/lib/types';
@@ -120,7 +120,7 @@ export async function signOut() {
 }
 
 export async function demoLogin(fd: FormData) {
-  if (!isDemo) redirect('/login');
+  if (!demoAuth) redirect('/login');
   const role = String(fd.get('role')) as Role;
   if (!['learner', 'professional', 'faculty', 'admin'].includes(role)) redirect('/login');
   cookies().set(DEMO_ROLE_COOKIE, role, { httpOnly: true, sameSite: 'lax', path: '/', maxAge: 60 * 60 * 8 });

@@ -1,7 +1,7 @@
 import 'server-only';
 import { cookies } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
-import { isDemo } from './config';
+import { demoAuth, isDemo } from './config';
 import { table } from './store';
 import { createAdminClient, createClient } from './supabase/server';
 import type { Profile, Role } from './types';
@@ -12,6 +12,7 @@ export const DEMO_ROLE_COOKIE = 'sd_demo_role';
 
 export async function getCurrentUser(): Promise<CurrentUser | null> {
   if (isDemo) {
+    if (!demoAuth) return null;
     const role = cookies().get(DEMO_ROLE_COOKIE)?.value as Role | undefined;
     if (!role || !['learner', 'professional', 'faculty', 'franchise', 'admin'].includes(role)) return null;
     const profile = table<Profile>('profiles').find((p) => p.id === `demo-${role}`);

@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { LoginPanel } from '@/components/auth-forms';
 import { DemoLogin } from '@/components/demo-login';
 import { Section } from '@/components/ui';
-import { isDemo } from '@/lib/config';
+import { demoAuth } from '@/lib/config';
 import { safePath } from '@/lib/safe-path';
 
 export const metadata: Metadata = { title: 'Create account' };
@@ -21,7 +21,7 @@ export default function SignupPage({ searchParams }: { searchParams: { next?: st
           <p className="mt-3 text-center text-[12px] text-ink-soft">By continuing you agree to our <Link href="/legal/terms" className="underline">Terms</Link> and <Link href="/legal/privacy" className="underline">Privacy policy</Link>.</p>
         </div>
         <div className="space-y-6">
-          {isDemo && <DemoLogin next={next} />}
+          {demoAuth && <DemoLogin next={next} />}
           <div className="card">
             <p className="font-semibold">Want to teach or take bookings?</p>
             <p className="mt-1 text-[14px] text-ink-soft">Everyone starts as a learner. Apply as <Link href="/apply/faculty" className="font-semibold underline">faculty</Link> or <Link href="/apply/professional" className="font-semibold underline">professional</Link> and our team upgrades your account once approved.</p>

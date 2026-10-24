@@ -5,7 +5,7 @@ import { LoginPanel } from '@/components/auth-forms';
 import { DemoLogin } from '@/components/demo-login';
 import { Section } from '@/components/ui';
 import { dashboardPathFor, getCurrentUser } from '@/lib/auth';
-import { isDemo } from '@/lib/config';
+import { demoAuth } from '@/lib/config';
 import { safePath } from '@/lib/safe-path';
 
 export const metadata: Metadata = { title: 'Log in' };
@@ -25,7 +25,7 @@ export default async function LoginPage({ searchParams }: { searchParams: { next
           <p className="mt-6 text-center text-[14px]">New to Syllabdosth? <Link href={`/signup${next ? `?next=${encodeURIComponent(next)}` : ''}`} className="font-semibold underline">Create an account</Link></p>
         </div>
         <div className="space-y-6">
-          {isDemo && <DemoLogin next={next} />}
+          {demoAuth && <DemoLogin next={next} />}
           <div className="rounded-card bg-noir p-8 text-white">
             <p className="font-serif text-[26px] font-bold leading-tight">Learn a craft.<br />Book a master.</p>
             <p className="mt-3 text-ink-dark-muted">One account for everything — courses, bookings, and your professional or faculty profile.</p>
