@@ -17,6 +17,9 @@ async function goAfterLogin(next: string) {
   redirect(user ? dashboardPathFor(user.profile.role) : '/dashboard');
 }
 const demoMsg = { error: 'Demo mode: use the “Try a demo account” buttons below. Real login works once Supabase keys are added.' };
+// Auth errors are shown in general words, so the messages never tell anyone whether an account exists.
+const TOO_MANY = 'Too many attempts. Please wait a few minutes and try again.';
+const rateLimited = (code?: string) => !!code && code.startsWith('over_') && code.endsWith('_rate_limit');
 
 /* ------------------------------- Email ------------------------------- */
 const creds = z.object({ email: z.string().trim().email('Enter a valid email'), password: z.string().min(8, 'Password must be at least 8 characters') });
@@ -26,7 +29,7 @@ export async function signInEmail(_: ActionState, fd: FormData): Promise<ActionS
   const p = creds.safeParse({ email: fd.get('email'), password: fd.get('password') });
   if (!p.success) return { error: p.error.issues[0].message };
   const { error } = await createClient().auth.signInWithPassword(p.data);
-  if (error) return { error: error.message === 'Invalid login credentials' ? 'Wrong email or password.' : error.message };
+  if (error) return { error: rateLimited(error.code) ? TOO_MANY : 'Wrong email or password, or the email address is not confirmed yet.' };
   await goAfterLogin(safeNext(fd.get('next')));
   return {};
 }
@@ -42,9 +45,14 @@ export async function signUpEmail(_: ActionState, fd: FormData): Promise<ActionS
     password: p.data.password,
     options: { data: { full_name: p.data.full_name }, emailRedirectTo: `${SITE_URL}/auth/callback?next=/dashboard` },
   });
-  if (error) return { error: error.message };
+  const sent = { ok: true, message: `Check ${p.data.email} for a confirmation link to finish creating your account.` };
+  if (error) {
+    if (error.code === 'user_already_exists' || error.code === 'email_exists') return sent; // same answer as a new sign-up
+    if (error.code === 'weak_password') return { error: error.message };
+    return { error: rateLimited(error.code) ? TOO_MANY : 'We could not create the account. Check your details and try again.' };
+  }
   if (data.session) await goAfterLogin(safeNext(fd.get('next')));
-  return { ok: true, message: `Check ${p.data.email} for a confirmation link to finish creating your account.` };
+  return sent;
 }
 
 export async function forgotPassword(_: ActionState, fd: FormData): Promise<ActionState> {
@@ -89,7 +97,7 @@ export async function sendPhoneOtp(_: ActionState, fd: FormData): Promise<Action
   const phone = normalisePhone(String(fd.get('phone') ?? ''));
   if (!phone) return { error: 'Enter a valid 10-digit Indian mobile number.' };
   const { error } = await createClient().auth.signInWithOtp({ phone });
-  if (error) return { error: error.message };
+  if (error) return { error: rateLimited(error.code) ? TOO_MANY : 'We could not send a code to that number. Please try again in a few minutes.' };
   return { ok: true, message: `We sent a 6-digit code to ${phone}.`, fields: { phone } };
 }
 
