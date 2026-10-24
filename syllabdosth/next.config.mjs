@@ -14,7 +14,8 @@ const csp = [
   "img-src 'self' data: blob: https:", // course and CMS images can come from any https host
   "font-src 'self' data:",
   // The browser never calls Supabase directly (only our own server does), so it is not listed here.
-  "connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://www.facebook.com",
+  // gtag.js also sends copies of hits to www.google.com/g/collect (seen with the real script), so that one host is allowed.
+  "connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://www.google.com https://www.facebook.com",
   "frame-src 'self'",
   "frame-ancestors 'none'",
   "object-src 'none'",
