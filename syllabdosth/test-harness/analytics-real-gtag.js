@@ -1,5 +1,6 @@
 // Loads Google's REAL gtag.js against a DEMO-mode build and records every hit it tries to send, while BLOCKING all of
-// them (nothing reaches Google Analytics; only the public script is downloaded). Shows exactly what Google would get,
+// them (nothing reaches Google: hits, their copies to www.google.com and any other Google address are blocked; only
+// the public script is downloaded). Shows exactly what Google would get,
 // including what the property's own Enhanced Measurement settings add (e.g. history-change page views).
 //   SITE=http://localhost:3000 CHROME_PATH="C:/Program Files/Google/Chrome/Application/chrome.exe" node test-harness/analytics-real-gtag.js
 let pw;
@@ -26,6 +27,12 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
   const page = await ctx.newPage();
   const hits = []; // one entry per event: { en, dl, dr, dt, raw }
   let script = 0;
+  // Anything else at Google is blocked and reported (routes added later take priority over this one).
+  const unexpected = [];
+  await ctx.route(/google|doubleclick|gstatic/, (r) => { unexpected.push(r.request().url().slice(0, 120)); r.abort(); });
+  // gtag.js also sends copies of hits to www.google.com/g/collect: recorded and blocked too, never sent.
+  const copies = [];
+  await ctx.route(/^https:\/\/www\.google\.com\/(g|ccm)\//, (r) => { const req = r.request(); copies.push(`${req.url()} ${req.postData() || ''}`); r.abort(); });
   await ctx.route(/googletagmanager\.com\/gtag\/js/, (r) => { script++; r.continue(); });
   await ctx.route(/google-analytics\.com|analytics\.google\.com|googletagmanager\.com\/(g|td)\/|doubleclick\.net/, (r) => {
     const req = r.request();
@@ -76,14 +83,16 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
   const turnedOff = hits.filter((h) => ['view_search_results', 'form_start', 'form_submit'].includes(h.en)).map((h) => h.en);
   ck('No Site search or form events (switched off in the property)', turnedOff.length === 0, JSON.stringify(turnedOff));
-  const everything = hits.map((h) => decodeURIComponent(h.raw)).join('\n');
+  const everything = [...hits.map((h) => h.raw), ...copies].map((x) => decodeURIComponent(x)).join('\n');
   if (process.env.DUMP) {
     for (const h of hits) {
       const keep = decodeURIComponent(h.raw).replace(/^[^?]*\?/, '').split(/[& ]/).filter((p) => /^(en|dl|dr|dt|ep\.|epn\.|up\.)/.test(p));
       console.log('HIT', h.en, keep.join('  '));
     }
   }
-  ck('No email, search words, reset code or private paths in any hit', !/secret|SECRET|@example|\/dashboard|\/account|token=/.test(everything), everything.slice(0, 400));
+  ck('No email, search words, reset code or private paths in any hit or copy', !/secret|SECRET|@example|\/dashboard|\/account|token=/.test(everything), everything.slice(0, 400));
+  ck('Copies to www.google.com carry only clean page addresses', copies.every((c) => { const dl = new URLSearchParams(c.split('?')[1]?.split(' ')[0] ?? '').get('dl'); return !dl || !/[?&](q|search|code|token)=/.test(dl); }));
+  ck('No other Google address contacted', unexpected.length === 0, unexpected.join(' '));
 
   await page.getByTestId('cookie-settings').first().click();
   const before = hits.length;
@@ -95,6 +104,7 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
   ck('After withdrawing consent: no Google cookies', !(await ctx.cookies()).some((c) => c.name.startsWith('_ga')));
 
   console.log(`\nEvents gtag.js tried to send (all blocked): ${JSON.stringify(hits.map((h) => h.en))}`);
+  console.log(`Copies it tried to send to www.google.com (all blocked): ${copies.length}`);
   await browser.close();
   console.log(fails ? `\n${fails} FAILED` : '\nAll passed');
   process.exit(fails ? 1 : 0);
