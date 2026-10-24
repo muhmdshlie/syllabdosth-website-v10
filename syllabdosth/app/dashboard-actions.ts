@@ -4,13 +4,15 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import type { ActionState } from '@/lib/action-state';
-import { getCurrentUser, requireRole } from '@/lib/auth';
+import { logActivity } from '@/lib/admin/crud';
+import { type CurrentUser, getCurrentUser, requireRole } from '@/lib/auth';
 import * as data from '@/lib/data';
 import * as lms from '@/lib/lms';
 import { notifyEnquiry } from '@/lib/mailer';
 import type { ApplicationStatus, BookingStatus, EnquiryStatus, Role } from '@/lib/types';
 
 const s = (fd: FormData, k: string) => String(fd.get(k) ?? '');
+const actorOf = (u: CurrentUser) => ({ id: u.id, name: u.profile.full_name || u.email || 'Admin' });
 
 /* Professional: respond to booking requests for their own listing */
 export async function proSetBookingStatus(fd: FormData) {
@@ -60,35 +62,41 @@ export async function updateProfileAction(_: ActionState, fd: FormData): Promise
 
 /* Admin */
 export async function adminSetBookingStatus(fd: FormData) {
-  await requireRole(['admin'], '/admin');
+  const me = await requireRole(['admin'], '/admin');
   const status = s(fd, 'status') as BookingStatus;
   if (!['pending', 'confirmed', 'declined', 'cancelled', 'completed'].includes(status)) return;
   await data.setBookingStatus(s(fd, 'id'), status);
+  await logActivity(actorOf(me), 'update', 'Bookings', s(fd, 'id'), `Booking status → ${status}`);
   revalidatePath('/admin');
 }
 export async function adminSetGroupStatus(fd: FormData) {
-  await requireRole(['admin'], '/admin');
+  const me = await requireRole(['admin'], '/admin');
   const status = s(fd, 'status') as EnquiryStatus;
   if (!['new', 'contacted', 'converted', 'closed'].includes(status)) return;
   await data.setGroupEnquiryStatus(s(fd, 'id'), status);
+  await logActivity(actorOf(me), 'update', 'Group enquiries', s(fd, 'id'), `Group enquiry status → ${status}`);
   revalidatePath('/admin');
 }
 export async function adminSetEnrollmentStatus(fd: FormData) {
-  await requireRole(['admin'], '/admin');
+  const me = await requireRole(['admin'], '/admin');
   const status = s(fd, 'status') as EnquiryStatus;
   if (!['new', 'contacted', 'converted', 'closed'].includes(status)) return;
   await data.setEnrollmentStatus(s(fd, 'id'), status);
+  await logActivity(actorOf(me), 'update', 'Enrollments', s(fd, 'id'), `Course enquiry status → ${status}`);
   revalidatePath('/admin');
 }
 export async function adminSetApplicationStatus(fd: FormData) {
-  await requireRole(['admin'], '/admin');
+  const me = await requireRole(['admin'], '/admin');
   const status = s(fd, 'status') as ApplicationStatus;
   if (!['reviewing', 'approved', 'rejected'].includes(status)) return;
   const app = (await data.listApplications()).find((a) => a.id === s(fd, 'id'));
   if (!app) return;
   await data.setApplicationStatus(app.id, status);
   // Approving an application from a signed-in user upgrades their account role.
-  if (status === 'approved' && app.user_id) await data.setProfileRole(app.user_id, app.type === 'faculty' ? 'faculty' : 'professional');
+  const newRole = app.type === 'faculty' ? 'faculty' : 'professional';
+  if (status === 'approved' && app.user_id) await data.setProfileRole(app.user_id, newRole);
+  await logActivity(actorOf(me), 'update', 'Applications', app.id,
+    `Application status → ${status}${status === 'approved' && app.user_id ? `; account role → ${newRole}` : ''}`);
   revalidatePath('/admin');
 }
 export async function adminSetRole(fd: FormData) {
@@ -97,6 +105,7 @@ export async function adminSetRole(fd: FormData) {
   const id = s(fd, 'id');
   if (!['learner', 'professional', 'faculty', 'franchise', 'admin'].includes(role) || id === me.id) return;
   await data.setProfileRole(id, role);
+  await logActivity(actorOf(me), 'update', 'Users & roles', id, `Account role → ${role}`);
   revalidatePath('/admin');
 }
 
