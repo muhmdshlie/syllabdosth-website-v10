@@ -11,7 +11,7 @@
     "check:supabase": "node scripts/check-supabase.mjs"
   },
   "dependencies": {
-    "@capacitor/core": "^8.0.0",
+    "@capacitor/core": "8.5.3",
     "@fontsource/cormorant-garamond": "^5.3.0",
     "@fontsource/inter": "^5.3.0",
     "@fontsource/inter-tight": "^5.3.0",
@@ -28,8 +28,8 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@capacitor/android": "^8.0.0",
-    "@capacitor/cli": "^8.0.0",
+    "@capacitor/android": "8.5.3",
+    "@capacitor/cli": "8.5.3",
     "@types/node": "^20.16.0",
     "@types/nodemailer": "^6.4.24",
     "@types/react": "^18.3.11",
@@ -42,8 +42,8 @@
     "typescript": "^5.6.3"
   },
   "allowScripts": {
-    "@capacitor/core@8.0.0": true,
-    "@capacitor/cli@8.0.0": true,
-    "@capacitor/android@8.0.0": true
+    "@capacitor/core@8.5.3": true,
+    "@capacitor/cli@8.5.3": true,
+    "@capacitor/android@8.5.3": true
   }
 }
