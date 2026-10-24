@@ -3,7 +3,8 @@
 // can't redirect off-site, the security headers are sent, and the CSP lets Google Analytics and our own
 // analytics run (Google's script is stubbed: nothing is sent to Google).
 //   (demo build, see analytics-e2e.js) npx next start -p 3000
-//   SITE=http://localhost:3000 CHROME_PATH="C:/Program Files/Google/Chrome/Application/chrome.exe" node test-harness/security.js
+//   optional, to check demo logins are refused on Vercel: (same build) VERCEL=1 npx next start -p 3001
+//   SITE=http://localhost:3000 SITE_VERCEL=http://localhost:3001 CHROME_PATH="C:/Program Files/Google/Chrome/Application/chrome.exe" node test-harness/security.js
 const path = require('path');
 let pw;
 try { pw = require('playwright'); } catch { pw = require('playwright-core'); }
@@ -67,7 +68,36 @@ const get = (u, cookie, extra = {}) => fetch(S + u, { redirect: 'manual', header
   const ok = await get(`/login?next=${encodeURIComponent('/dashboard/support')}`, 'sd_demo_role=learner');
   ck('A safe next path still works', ok.headers.get('location')?.endsWith('/dashboard/support'), ok.headers.get('location'));
 
-  // 4. In a browser: no CSP violations, and Google Analytics and our analytics still run after consent.
+  // 4. An account's booking (bk-1001 belongs to the demo learner; its location is 'Jayanagar 4th Block') is shown only to that account or an admin.
+  const bk = '/bookings/bk-1001';
+  const bAnon = await get(bk);
+  ck('Booking: logged-out visitor is sent to log in, no details', bAnon.status === 307 && bAnon.headers.get('location')?.includes('/login'), `${bAnon.status}`);
+  for (const role of ['professional', 'faculty']) {
+    const r = await get(bk, `sd_demo_role=${role}`);
+    const body = await r.text();
+    ck(`Booking: another account (${role}) gets not found, no details`, r.status === 404 && !body.includes('98450 12345') && !body.includes('Jayanagar 4th Block'), String(r.status));
+  }
+  for (const role of ['learner', 'admin']) {
+    const r = await get(bk, `sd_demo_role=${role}`);
+    ck(`Booking: ${role === 'learner' ? 'the owner' : 'an admin'} still sees it`, r.status === 200 && (await r.text()).includes('Jayanagar 4th Block'), String(r.status));
+  }
+  const sent = await get(`${bk}/sent`, 'sd_demo_role=professional');
+  ck('Booking "sent" page: another account gets not found', sent.status === 404, String(sent.status));
+
+  // 5. The image optimizer refuses images from other hosts.
+  const img = await get(`/_next/image?url=${encodeURIComponent('https://example.supabase.co/storage/v1/object/public/x.png')}&w=64&q=75`);
+  ck('/_next/image refuses a remote image', img.status === 400, String(img.status));
+
+  // 6. With VERCEL set (SITE_VERCEL: a second demo server started with VERCEL=1), demo logins are refused.
+  if (process.env.SITE_VERCEL) {
+    const V = process.env.SITE_VERCEL;
+    const r = await fetch(`${V}/admin`, { redirect: 'manual', headers: { 'user-agent': UA, cookie: 'sd_demo_role=admin' } });
+    ck('On Vercel: an admin demo cookie gives no access', r.status === 307 && r.headers.get('location')?.includes('/login'), `${r.status} ${r.headers.get('location')}`);
+    const login = await (await fetch(`${V}/login`, { headers: { 'user-agent': UA } })).text();
+    ck('On Vercel: no demo login buttons', !login.includes('name="role"'));
+  }
+
+  // 7. In a browser: no CSP violations, and Google Analytics and our analytics still run after consent.
   const browser = await pw.chromium.launch({ executablePath: process.env.CHROME_PATH || undefined });
   const adminCtx = await browser.newContext({ userAgent: UA });
   const admin = await adminCtx.newPage();
