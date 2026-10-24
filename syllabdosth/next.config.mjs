@@ -32,11 +32,9 @@ const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   experimental: { serverActions: { bodySizeLimit: '6mb' } },
-  images: {
-    remotePatterns: [
-      { protocol: 'https', hostname: '*.supabase.co' },
-    ],
-  },
+  // No remotePatterns: the site doesn't use next/image, so /_next/image must not fetch and process images
+  // from other hosts (the image optimizer is where several Next.js advisories are).
+  images: {},
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }];
   },
