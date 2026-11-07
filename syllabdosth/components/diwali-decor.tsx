@@ -4,6 +4,7 @@
  * Items are placed with --x/--y (0–1) inside their side box, so they never leave it; --sz is the base size in px.
  */
 import type React from 'react';
+import { FireworksCanvas, type SoundRef } from './diwali-fireworks';
 
 type Side = 'left' | 'right';
 type Pt = { x: number; y: number; sz: number; d?: number; m?: boolean };
@@ -90,12 +91,14 @@ function DiwaliDefs() {
   );
 }
 
-function DiwaliSide({ side }: { side: Side }) {
+function DiwaliSide({ side, sound }: { side: Side; sound?: SoundRef }) {
   const l = LAYOUT[side];
   const m = (p: Pt) => (p.m ? ' dw-m' : '');
   return (
     <div className={`dw-side dw-${side}`}>
       {l.glows.map((p, i) => <span key={`g${i}`} className={`dw-item dw-glow${m(p)}`} style={vars(p)} />)}
+      {/* fireworks sit behind the diyas, string and sparkles */}
+      <FireworksCanvas side={side} sound={sound} />
       {side === 'right' && (
         <div className="dw-string">
           <svg viewBox="0 0 100 20" preserveAspectRatio="none"><path d="M0 1Q50 34 100 1" fill="none" stroke="#D6B36A" strokeOpacity="0.45" strokeWidth="1" vectorEffect="non-scaling-stroke" /></svg>
@@ -116,12 +119,12 @@ function DiwaliSide({ side }: { side: Side }) {
 }
 
 /** Both side decorations for the hero. Place it between the photo and the copy layers. */
-export function DiwaliDecor() {
+export function DiwaliDecor({ sound }: { sound?: SoundRef }) {
   return (
     <div className="dw" aria-hidden>
       <DiwaliDefs />
-      <DiwaliSide side="left" />
-      <DiwaliSide side="right" />
+      <DiwaliSide side="left" sound={sound} />
+      <DiwaliSide side="right" sound={sound} />
     </div>
   );
 }
