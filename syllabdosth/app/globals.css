@@ -251,14 +251,11 @@ html.lenis, html.lenis body { height: auto; }
   animation: dw-bulb 2.4s ease-in-out var(--d) infinite;
 }
 
-.dw-fw {
-  position: absolute; inset: 0; width: 100%; height: 100%;
-  /* soft edges so bursts never look cut off at the box border */
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent), linear-gradient(180deg, transparent, #000 8%, #000 90%, transparent);
-  -webkit-mask-composite: source-in;
-  mask-image: linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent), linear-gradient(180deg, transparent, #000 8%, #000 90%, transparent);
-  mask-composite: intersect;
-}
+.dw-fw { position: absolute; top: 0; height: 100%; width: 27%; }
+/* = the black columns beside the photo frame (.hero-photo clip: 27% each side); phones: the band above the photo (30%) */
+.dw-fw-left { left: 0; }
+.dw-fw-right { right: 0; }
+@media (max-width: 767px) { .dw-fw-left { display: none; } .dw-fw-right { width: 100%; height: 30%; } }
 /* sound toggle: sits in a corner of the right decor box (.dw-right), so it stays clear of the headline, CTAs and stats */
 .dw-sound {
   position: absolute; left: calc(75% + 6px); bottom: 400px; z-index: 2; display: grid; place-items: center;

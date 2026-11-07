@@ -91,14 +91,12 @@ function DiwaliDefs() {
   );
 }
 
-function DiwaliSide({ side, sound }: { side: Side; sound?: SoundRef }) {
+function DiwaliSide({ side }: { side: Side }) {
   const l = LAYOUT[side];
   const m = (p: Pt) => (p.m ? ' dw-m' : '');
   return (
     <div className={`dw-side dw-${side}`}>
       {l.glows.map((p, i) => <span key={`g${i}`} className={`dw-item dw-glow${m(p)}`} style={vars(p)} />)}
-      {/* fireworks sit behind the diyas, string and sparkles */}
-      <FireworksCanvas side={side} sound={sound} />
       {side === 'right' && (
         <div className="dw-string">
           <svg viewBox="0 0 100 20" preserveAspectRatio="none"><path d="M0 1Q50 34 100 1" fill="none" stroke="#D6B36A" strokeOpacity="0.45" strokeWidth="1" vectorEffect="non-scaling-stroke" /></svg>
@@ -123,8 +121,11 @@ export function DiwaliDecor({ sound }: { sound?: SoundRef }) {
   return (
     <div className="dw" aria-hidden>
       <DiwaliDefs />
-      <DiwaliSide side="left" sound={sound} />
-      <DiwaliSide side="right" sound={sound} />
+      {/* fireworks fill the whole black column on each side, behind the diyas, string and sparkles */}
+      <FireworksCanvas side="left" sound={sound} />
+      <FireworksCanvas side="right" sound={sound} />
+      <DiwaliSide side="left" />
+      <DiwaliSide side="right" />
     </div>
   );
 }
