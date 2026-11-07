@@ -9,6 +9,7 @@ import type React from 'react';
 import { useEffect, useRef } from 'react';
 import { DepthPhoto } from './depth-photo';
 import { DiwaliDecor } from './diwali-decor';
+import { FireworksCanvas, FireworksToggle, useFireworksSound } from './diwali-fireworks';
 import { Words } from './motion';
 
 export type HeroCopy = { topLeft: string; topRight: string; title1: string; title2: string; primaryCta: string; secondaryCta: string; second1: string; second2: string };
@@ -23,6 +24,7 @@ const lines = (t: string) => t.split('\n').map((l, i) => <span key={i}>{i > 0 &&
 export function HeroReveal({ photo, stats, copy }: Props) {
   const wrap = useRef<HTMLElement>(null);
   const stage = useRef<HTMLDivElement>(null);
+  const fw = useFireworksSound();
 
   useEffect(() => {
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -46,6 +48,9 @@ export function HeroReveal({ photo, stats, copy }: Props) {
   return (
     <section ref={wrap} className="hero-reveal bg-noir text-pearl" aria-label="Syllabdosth">
       <div ref={stage} className="sticky top-0 h-[100svh] overflow-hidden">
+        {/* Diwali fireworks: one canvas over the whole black background, under the photo, decor and copy */}
+        <FireworksCanvas sound={fw.sound} />
+
         {/* photo that opens up as you scroll */}
         <div className="hero-photo">
           <div className="hero-photo-inner">
@@ -103,6 +108,9 @@ export function HeroReveal({ photo, stats, copy }: Props) {
         </div>
 
         <div className="hero-scroll micro absolute bottom-6 left-1/2 hidden -translate-x-1/2 text-ink-dark-muted sm:block" aria-hidden>Scroll</div>
+
+        {/* fireworks sound: off until the visitor turns it on */}
+        <FireworksToggle on={fw.on} onToggle={fw.toggle} />
       </div>
     </section>
   );
