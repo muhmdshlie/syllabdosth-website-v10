@@ -9,7 +9,7 @@ import type React from 'react';
 import { useEffect, useRef } from 'react';
 import { DepthPhoto } from './depth-photo';
 import { DiwaliDecor } from './diwali-decor';
-import { FireworksToggle, useFireworksSound } from './diwali-fireworks';
+import { FireworksCanvas, FireworksToggle, useFireworksSound } from './diwali-fireworks';
 import { Words } from './motion';
 
 export type HeroCopy = { topLeft: string; topRight: string; title1: string; title2: string; primaryCta: string; secondaryCta: string; second1: string; second2: string };
@@ -48,6 +48,9 @@ export function HeroReveal({ photo, stats, copy }: Props) {
   return (
     <section ref={wrap} className="hero-reveal bg-noir text-pearl" aria-label="Syllabdosth">
       <div ref={stage} className="sticky top-0 h-[100svh] overflow-hidden">
+        {/* Diwali fireworks: one canvas over the whole black background, under the photo, decor and copy */}
+        <FireworksCanvas sound={fw.sound} />
+
         {/* photo that opens up as you scroll */}
         <div className="hero-photo">
           <div className="hero-photo-inner">
@@ -64,8 +67,8 @@ export function HeroReveal({ photo, stats, copy }: Props) {
           <span aria-hidden className="photo-glass" />
         </div>
 
-        {/* Diwali: diyas, sparkles and fireworks in the black areas beside the photo (behind the copy) */}
-        <DiwaliDecor sound={fw.sound} />
+        {/* Diwali: diyas and sparkles in the black areas beside the photo (behind the copy) */}
+        <DiwaliDecor />
 
         {/* first screen: headline */}
         <div className="hero-copy container-page relative flex h-full flex-col justify-between pb-10 pt-32 lg:pb-12 lg:pt-36">

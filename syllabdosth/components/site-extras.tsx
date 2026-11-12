@@ -46,7 +46,7 @@ export async function MaintenanceGate({ children }: { children: ReactNode }) {
   return (
     <main id="main" className="flex min-h-screen flex-col items-center justify-center bg-noir px-6 text-center text-pearl">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={site.logoLight} alt={site.siteName} className="h-10 w-auto" />
+      <img src={site.logoLight} alt={site.siteName} width={1200} height={319} className="h-12 w-auto" />
       <h1 className="mt-10 font-display text-[36px] font-medium uppercase tracking-[-0.02em] sm:text-[56px]">{m.title}</h1>
       <p className="mt-4 max-w-md text-ink-dark-muted">{m.message}</p>
       {site.whatsappUrl && <a href={site.whatsappUrl} className="btn-primary mt-8" target="_blank" rel="noreferrer">WhatsApp us</a>}

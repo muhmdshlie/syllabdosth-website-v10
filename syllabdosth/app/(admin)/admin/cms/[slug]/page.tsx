@@ -3,13 +3,15 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ContentPage } from '@/components/admin/content-page';
 import { Card } from '@/components/admin/ui';
+import { requireAdmin } from '@/lib/auth';
 import { CONTENT, contentKeyFromSlug } from '@/lib/cms/schema';
 
 export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
   return { title: CONTENT[contentKeyFromSlug('page', params.slug)]?.title ?? 'CMS' };
 }
 
-export default function CmsPage({ params, searchParams }: { params: { slug: string }; searchParams: { reset?: string } }) {
+export default async function CmsPage({ params, searchParams }: { params: { slug: string }; searchParams: { reset?: string } }) {
+  await requireAdmin();
   const key = contentKeyFromSlug('page', params.slug);
   if (!CONTENT[key] || CONTENT[key].kind !== 'page') notFound();
   const legal = ['terms', 'privacy', 'cookies'].includes(params.slug);

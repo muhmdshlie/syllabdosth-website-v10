@@ -4,6 +4,7 @@ import { ConfirmSubmit, CopyButton } from '@/components/admin/controls';
 import { Icon } from '@/components/admin/icons';
 import { MediaUploader } from '@/components/admin/media-uploader';
 import { Empty, fmtDay, PageHeader } from '@/components/admin/ui';
+import { requireAdmin } from '@/lib/auth';
 import { listMedia } from '@/lib/media';
 
 export const metadata: Metadata = { title: 'Media Library' };
@@ -11,6 +12,7 @@ export const metadata: Metadata = { title: 'Media Library' };
 const size = (b: number) => (b > 1024 * 1024 ? `${(b / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(b / 1024))} KB`);
 
 export default async function MediaPage({ searchParams }: { searchParams: { q?: string } }) {
+  await requireAdmin();
   const items = await listMedia(searchParams.q ?? '', 300);
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? '';
   return (

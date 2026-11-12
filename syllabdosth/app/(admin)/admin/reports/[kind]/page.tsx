@@ -7,6 +7,7 @@ import { Card, PageHeader, StatusBadge } from '@/components/admin/ui';
 import { allRecords, relationOptions } from '@/lib/admin/crud';
 import { RESOURCES } from '@/lib/admin/resources';
 import type { Row } from '@/lib/admin/types';
+import { requireAdmin } from '@/lib/auth';
 import { inr } from '@/lib/format';
 
 const KINDS = {
@@ -24,6 +25,7 @@ export function generateMetadata({ params }: { params: { kind: string } }): Meta
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 
 export default async function Report({ params, searchParams }: { params: { kind: string }; searchParams: { from?: string; to?: string } }) {
+  await requireAdmin();
   const k = KINDS[params.kind as Kind];
   if (!k) notFound();
   const today = new Date(Date.now() + 330 * 60_000);

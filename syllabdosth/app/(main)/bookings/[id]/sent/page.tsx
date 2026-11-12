@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { BookingSummary } from '@/components/booking';
 import { Arrow, Avatar, Section } from '@/components/ui';
+import { requireBookingViewer } from '@/lib/auth';
 import { getBooking, getProfessional, getServiceById } from '@/lib/data';
 
 export const metadata: Metadata = { title: 'Booking request sent', robots: { index: false } };
@@ -10,6 +11,7 @@ export const metadata: Metadata = { title: 'Booking request sent', robots: { ind
 export default async function BookingSent({ params }: { params: { id: string } }) {
   const booking = await getBooking(params.id);
   if (!booking) notFound();
+  await requireBookingViewer(booking.customer_id, `/bookings/${booking.id}/sent`);
   const [service, pro] = await Promise.all([getServiceById(booking.service_id), getProfessional(booking.professional_id)]);
   if (!service || !pro) notFound();
   return (

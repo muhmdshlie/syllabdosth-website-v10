@@ -1,7 +1,7 @@
 import 'server-only';
 import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
-import { isDemo } from './config';
+import { notFound, redirect } from 'next/navigation';
+import { demoAuth, isDemo } from './config';
 import { table } from './store';
 import { createAdminClient, createClient } from './supabase/server';
 import type { Profile, Role } from './types';
@@ -12,6 +12,7 @@ export const DEMO_ROLE_COOKIE = 'sd_demo_role';
 
 export async function getCurrentUser(): Promise<CurrentUser | null> {
   if (isDemo) {
+    if (!demoAuth) return null;
     const role = cookies().get(DEMO_ROLE_COOKIE)?.value as Role | undefined;
     if (!role || !['learner', 'professional', 'faculty', 'franchise', 'admin'].includes(role)) return null;
     const profile = table<Profile>('profiles').find((p) => p.id === `demo-${role}`);
@@ -43,6 +44,25 @@ export async function requireRole(roles: Role[], next = '/dashboard'): Promise<C
   if (!user) redirect(`/login?next=${encodeURIComponent(next)}`);
   if (!roles.includes(user.profile.role)) redirect(dashboardPathFor(user.profile.role));
   return user;
+}
+
+/**
+ * Every admin page calls this itself. The admin layout's check is not enough: with partial rendering a
+ * client navigation can render a page without re-running the layout above it.
+ */
+export function requireAdmin(next = '/admin'): Promise<CurrentUser> {
+  return requireRole(['admin'], next);
+}
+
+/**
+ * Booking pages: a booking made from an account is shown only to that account or an admin (others are sent
+ * to log in, or get "not found"). A guest booking has no account, so its private link is the only key.
+ */
+export async function requireBookingViewer(customerId: string | null, path: string): Promise<CurrentUser | null> {
+  const user = await getCurrentUser();
+  if (!customerId || user?.id === customerId || user?.profile.role === 'admin') return user;
+  if (!user) redirect(`/login?next=${encodeURIComponent(path)}`);
+  notFound();
 }
 
 export async function requireUser(next = '/dashboard'): Promise<CurrentUser> {

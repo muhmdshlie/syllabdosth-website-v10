@@ -6,6 +6,7 @@ import { Icon } from '@/components/admin/icons';
 import { Card, PageHeader, StatusBadge } from '@/components/admin/ui';
 import { countRecords } from '@/lib/admin/crud';
 import { resourceList } from '@/lib/admin/resources';
+import { requireAdmin } from '@/lib/auth';
 import { isDemo, SUPABASE_URL } from '@/lib/config';
 
 export const metadata: Metadata = { title: 'Utility' };
@@ -13,6 +14,7 @@ export const metadata: Metadata = { title: 'Utility' };
 const TABLES = ['courses', 'course_lessons', 'enrollments', 'profiles', 'faculty', 'bookings', 'blog_posts', 'quizzes', 'submissions', 'live_classes', 'support_tickets', 'media', 'site_content', 'activity_log'];
 
 export default async function UtilityPage() {
+  await requireAdmin();
   const counts = await Promise.all(TABLES.map(async (t) => { try { return await countRecords(t); } catch { return null; } }));
   const missing = TABLES.filter((_, i) => counts[i] === null);
   return (

@@ -251,26 +251,22 @@ html.lenis, html.lenis body { height: auto; }
   animation: dw-bulb 2.4s ease-in-out var(--d) infinite;
 }
 
-.dw-fw { position: absolute; top: 0; height: 100%; width: 27%; }
-/* = the black columns beside the photo frame (.hero-photo clip: 27% each side); phones: the band above the photo (30%) */
-.dw-fw-left { left: 0; }
-.dw-fw-right { right: 0; }
-@media (max-width: 767px) { .dw-fw-left { display: none; } .dw-fw-right { width: 100%; height: 30%; } }
-/* sound toggle: sits in a corner of the right decor box (.dw-right), so it stays clear of the headline, CTAs and stats */
+/* fireworks: one canvas over the whole hero stage, first in it, so the photo frame, decor and copy all sit on top */
+.dw-fw { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; opacity: calc(1 - var(--s, 0) * 2.2); }
+/* sound toggle: sits in a corner of the right decor box (.dw-right), so it stays clear of the headline, CTAs and stats;
+   always visible while the hero is on screen */
 .dw-sound {
   position: absolute; left: calc(75% + 6px); bottom: 400px; z-index: 2; display: grid; place-items: center;
   width: 40px; height: 40px; border-radius: 9999px; color: rgba(242, 240, 235, 0.8);
-  opacity: calc(1 - var(--s, 0) * 2.2); transition: color 0.3s, border-color 0.3s, box-shadow 0.3s;
+  transition: color 0.3s, border-color 0.3s, box-shadow 0.3s;
 }
 .dw-sound:hover, .dw-sound.is-on { color: #F5D98B; }
 .dw-sound.is-on { border-color: rgba(245, 217, 139, 0.45); box-shadow: 0 0 18px -4px rgba(245, 217, 139, 0.45); }
 .dw-sound:focus-visible { outline: 2px solid #F5D98B; outline-offset: 3px; }
-[data-past='1'] .dw-sound { visibility: hidden; }
 @media (min-width: 768px) and (max-width: 1023px) { .dw-sound { bottom: 360px; } }
 /* phones: bottom-right corner of the small decor box in the top band (top 112px, right 16px, 76px tall) */
 @media (max-width: 767px) { .dw-sound { left: auto; right: 16px; bottom: auto; top: 154px; width: 34px; height: 34px; } }
 @media (min-width: 640px) and (max-width: 767px) { .dw-sound { right: calc(50% - 60px); } }
-@media (max-height: 620px) { .dw-sound { display: none; } }
 @media (prefers-reduced-motion: reduce) { .dw-fw, .dw-sound { display: none; } }
 
 @media (min-width: 768px) and (max-width: 1023px) { .dw { --k: 0.74; } .dw-side { bottom: 360px; } }

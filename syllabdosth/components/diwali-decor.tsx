@@ -4,7 +4,6 @@
  * Items are placed with --x/--y (0–1) inside their side box, so they never leave it; --sz is the base size in px.
  */
 import type React from 'react';
-import { FireworksCanvas, type SoundRef } from './diwali-fireworks';
 
 type Side = 'left' | 'right';
 type Pt = { x: number; y: number; sz: number; d?: number; m?: boolean };
@@ -117,13 +116,10 @@ function DiwaliSide({ side }: { side: Side }) {
 }
 
 /** Both side decorations for the hero. Place it between the photo and the copy layers. */
-export function DiwaliDecor({ sound }: { sound?: SoundRef }) {
+export function DiwaliDecor() {
   return (
     <div className="dw" aria-hidden>
       <DiwaliDefs />
-      {/* fireworks fill the whole black column on each side, behind the diyas, string and sparkles */}
-      <FireworksCanvas side="left" sound={sound} />
-      <FireworksCanvas side="right" sound={sound} />
       <DiwaliSide side="left" />
       <DiwaliSide side="right" />
     </div>

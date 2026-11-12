@@ -7,6 +7,11 @@ export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:30
 
 /** Demo mode: no Supabase keys → sample data, fake logins, in-memory writes. */
 export const isDemo = !SUPABASE_URL || !SUPABASE_ANON_KEY;
+/**
+ * Demo logins (an unsigned role cookie) only work off Vercel. If a Vercel deployment ever loses its Supabase
+ * keys it shows demo data, but nobody can sign in, so no one can pick the admin role.
+ */
+export const demoAuth = isDemo && !process.env.VERCEL;
 
 export const CONTACT = {
   phone: '+91 99018 84692',

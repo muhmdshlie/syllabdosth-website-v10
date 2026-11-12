@@ -13,8 +13,8 @@ export function Logo({ dark, className = 'h-9 sm:h-10', site }: { dark?: boolean
       <img
         src={dark ? site.logoLight : site.logoDark}
         alt={site.siteName}
-        width={853}
-        height={208}
+        width={1200}
+        height={319}
         className={`${className} w-auto transition duration-300 group-hover:scale-[1.03]`}
       />
     </Link>
@@ -50,7 +50,7 @@ export async function Nav({ dark = false }: { dark?: boolean }) {
       )}
       <div className="container-page pt-4">
         <div className={`flex h-[60px] items-center justify-between gap-6 rounded-[10px] pl-5 pr-2 ${dark ? 'liquid-glass' : 'liquid-glass-light'}`}>
-          <Logo dark={dark} className="h-7 sm:h-8" site={site} />
+          <Logo dark={dark} className="h-9 sm:h-10" site={site} />
           <nav aria-label="Main" className="hidden items-center gap-9 lg:flex">
             {links.map((l) => (
               <Link key={l.href} href={l.href} className={`nav-link ${text}`}>{l.label}</Link>
@@ -105,7 +105,7 @@ export async function Footer() {
       <div className="container-page pb-10 pt-20">
         <div className="grid grid-cols-2 gap-x-6 gap-y-12 border-b border-white/10 pb-16 md:grid-cols-4 lg:grid-cols-[minmax(0,1.6fr)_repeat(4,minmax(0,1fr))] lg:gap-12">
           <div className="col-span-2 md:col-span-4 lg:col-span-1">
-            <Logo dark className="h-9" site={site} />
+            <Logo dark className="h-12" site={site} />
             <p className="mt-8 font-display text-[30px] font-medium uppercase leading-[0.95] tracking-[-0.03em]">{f.line1}<br /><span className="accent text-stone-light">{f.line2}</span></p>
             <p className="mt-5 max-w-xs text-[14px] leading-relaxed text-ink-dark-muted">{f.blurb}</p>
             <div className="mt-6 space-y-1 text-[14px]">

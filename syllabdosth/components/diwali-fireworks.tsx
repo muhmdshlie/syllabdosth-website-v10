@@ -1,10 +1,11 @@
 'use client';
 
 /**
- * Canvas fireworks for the hero (components/diwali-decor.tsx). Each canvas covers the whole black column beside
- * the photo frame (on phones: the band above the photo). Before every burst it measures the hero's real text,
- * buttons, stats, nav and sound button and only places fireworks where they fit, so they never sit behind the
- * content whatever the CMS copy is; burst centres also avoid the diyas. Each side runs its own random schedule.
+ * Canvas fireworks for the hero (components/hero-reveal.tsx). One canvas covers the whole hero stage, edge to edge,
+ * and sits under the photo frame, so the photo hides anything behind it and the fireworks show wherever the black
+ * background does (beside the photo on desktop; above, beside and below it on phones). Before every burst it
+ * measures the hero's real text, buttons, stats, nav, sound button and photo frame and only places fireworks where
+ * they fit, so they never sit behind the content whatever the CMS copy is; burst centres also avoid the diyas.
  * The loop only runs while the hero is on screen, the photo hasn't opened yet and the tab is visible; with
  * reduced motion it never starts (the canvas is also hidden in CSS). Sound: components/fireworks-sound.ts.
  */
@@ -19,18 +20,20 @@ const COLORS = ['255,196,84', '255,224,130', '255,146,52', '255,236,186', '255,2
 const GOLD = 0, YELLOW = 1, ORANGE = 2, CHAMPAGNE = 3, WHITE = 4;
 type Kind = 'peony' | 'chrysanthemum' | 'willow' | 'crackle' | 'ring' | 'palm' | 'double';
 
-// Different timings and burst mixes per side, so the two sides never fall into step.
-const SIDES: Record<FwSide, { first: number; rocket: [number, number]; salvo: number; cracker: [number, number]; sparkler: number; kinds: [Kind, number][] }> = {
-  left: { first: 2.2, rocket: [0.8, 2.2], salvo: 0.3, cracker: [6, 12], sparkler: 5, kinds: [['peony', 3], ['chrysanthemum', 3], ['willow', 3], ['crackle', 2], ['ring', 1], ['palm', 2], ['double', 2]] },
-  right: { first: 2.9, rocket: [1, 2.6], salvo: 0.35, cracker: [5, 11], sparkler: 11, kinds: [['peony', 2], ['chrysanthemum', 2], ['willow', 2], ['crackle', 3], ['ring', 2], ['palm', 2], ['double', 3]] },
-};
+// Timings (seconds) and the burst mix for the whole hero. Phones fire more often: their black areas are small bands.
+type Cfg = { first: number; rocket: [number, number]; salvo: number; cracker: [number, number]; sparkler: number; maxRockets: number; kinds: [Kind, number][] };
+const KINDS: [Kind, number][] = [['peony', 3], ['chrysanthemum', 3], ['willow', 3], ['crackle', 3], ['ring', 2], ['palm', 2], ['double', 3]];
+const CFG: Cfg = { first: 2, rocket: [0.45, 1.3], salvo: 0.35, cracker: [4, 9], sparkler: 5, maxRockets: 5, kinds: KINDS };
+const CFG_PHONE: Cfg = { first: 1.4, rocket: [0.28, 0.7], salvo: 0.5, cracker: [3, 6], sparkler: 4, maxRockets: 7, kinds: KINDS };
+// The photo frame at the top of the scroll (.hero-photo clip-path insets in app/globals.css: top, side, bottom).
+const FRAME = { desktop: [0.15, 0.27, 0.18], phone: [0.3, 0.06, 0.34] };
 
 // particle flags
 const TWINKLE = 1, TRAIL = 2, BRANCH = 4, GLOW = 8;
 type P = { x: number; y: number; px: number; py: number; vx: number; vy: number; age: number; life: number; c: number; w: number; drag: number; g: number; f: number; ct: number };
 type Rocket = { x: number; y: number; vx: number; vy: number; g: number; r: number; kind: Kind; acc: number };
 type Flash = { x: number; y: number; r: number; age: number; life: number; a: number; c: number };
-type Sparkler = { age: number; dur: number; cx: number; cy: number; ax: number; ay: number; sp: number; ph: number; hx: number; hy: number; hist: number[]; acc: number; ping: number };
+type Sparkler = { side: FwSide; age: number; dur: number; cx: number; cy: number; ax: number; ay: number; sp: number; ph: number; hx: number; hy: number; hist: number[]; acc: number; ping: number };
 type Box = { l: number; t: number; r: number; b: number };
 
 const R = (a: number, b: number) => a + Math.random() * (b - a);
@@ -54,26 +57,30 @@ function sprite(rgb: string) {
   return c;
 }
 
-export function FireworksCanvas({ side, sound }: { side: FwSide; sound?: SoundRef }) {
+export function FireworksCanvas({ sound }: { sound?: SoundRef }) {
   const ref = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const cv = ref.current;
     const ctx = cv?.getContext('2d');
-    // .dw's parent is the hero's sticky stage: it holds the copy we keep clear of, and sets data-past once the photo opens
-    const stage = cv?.closest('.dw')?.parentElement as HTMLElement | null | undefined;
+    // the parent is the hero's sticky stage: it holds the copy we keep clear of, and sets data-past once the photo opens
+    const stage = cv?.parentElement;
     if (!cv || !ctx || !stage || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const cfg = SIDES[side];
+    const phone = window.matchMedia('(max-width: 767px)');
+    let cfg = phone.matches ? CFG_PHONE : CFG;
     const sprites = COLORS.map(sprite);
     const kindTotal = cfg.kinds.reduce((s, [, n]) => s + n, 0);
     const emit = (e: FwSound) => sound?.current?.play(e);
+    // the sound engine pans by side, with x (0–1) across that half of the hero
+    const sideOf = (x: number): FwSide => (x < w / 2 ? 'left' : 'right');
+    const at = (x: number) => (x < w / 2 ? x / (w / 2) : (x - w / 2) / (w / 2));
 
     let w = 0, h = 0, k = 1, lw = 1, S = 300, area = 1;
-    let boxes: Box[] = [], diyas: Box[] = [], measuredAt = -9;
+    let boxes: Box[] = [], diyas: Box[] = [], photoBox: Box = { l: 0, t: 0, r: 0, b: 0 }, measuredAt = -9;
     const parts: P[] = [], rockets: Rocket[] = [], flashes: Flash[] = [], timers: { at: number; fn: () => void }[] = [];
     let t = 0, idle = 0;
     let nextRocket = cfg.first, nextCracker = cfg.first + R(...cfg.cracker) * 0.5, nextSpark = cfg.sparkler;
-    let spark: Sparkler | null = null;
+    let spark: Sparkler | null = null, lowNext = false;
 
     /** Keep-out boxes (canvas coordinates) around everything the fireworks must not sit behind. */
     const measure = () => {
@@ -82,29 +89,39 @@ export function FireworksCanvas({ side, sound }: { side: FwSide; sound?: SoundRe
       const add = (to: Box[], r: DOMRect, pad: number) => {
         if (r.width > 0 && r.height > 0) to.push({ l: r.left - c.left - pad, t: r.top - c.top - pad, r: r.right - c.left + pad, b: r.bottom - c.top + pad });
       };
+      const pad = phone.matches ? 10 : 16; // phones: a tighter berth, as their black areas are small
       const header = document.querySelector('header');
       if (header) list.push({ l: -1e4, t: -1e4, r: 1e4, b: header.getBoundingClientRect().bottom - c.top + 14 });
       // text: one box per line/word, so the space beside a short line stays usable
       stage.querySelectorAll('.hero-copy h1, .hero-copy p, .hero-copy dl').forEach((el) => {
         const range = document.createRange();
         range.selectNodeContents(el);
-        for (const r of range.getClientRects()) add(list, r, 16);
+        for (const r of range.getClientRects()) add(list, r, pad);
       });
-      stage.querySelectorAll('.hero-copy a, .dw-sound').forEach((el) => add(list, el.getBoundingClientRect(), 16));
+      stage.querySelectorAll('.hero-copy a, .dw-sound, .hero-scroll').forEach((el) => add(list, el.getBoundingClientRect(), pad));
+      // floating site buttons (WhatsApp) sit over the hero; keep bursts from showing behind them
+      document.querySelectorAll('[data-testid="whatsapp-button"]').forEach((el) => add(list, el.getBoundingClientRect(), 20));
       stage.querySelectorAll('.dw-diya').forEach((el) => add(soft, el.getBoundingClientRect(), 22));
+      // the photo frame (it opens up as you scroll: --s). Bursts stay off it; rockets may climb behind it, hidden.
+      const [ft, fs, fb] = phone.matches ? FRAME.phone : FRAME.desktop, o = 1 - (parseFloat(stage.style.getPropertyValue('--s')) || 0);
+      photoBox = { l: w * fs * o - 6, t: h * ft * o - 6, r: w * (1 - fs * o) + 6, b: h * (1 - fb * o) + 6 };
       boxes = list; diyas = soft;
     };
     /** How big a firework centred here can be without reaching any content or the canvas edge. */
     const room = (x: number, y: number) => {
-      let m = Math.min(x + 6, w - x + 6, y, h - y);
+      // phones: bursts may run a little off the screen's sides and bottom, so the narrow bands still get big ones
+      const e = phone.matches ? 1.5 : 1;
+      let m = Math.min((x + 6) * e, (w - x + 6) * e, y, (h - y) * e, dist(photoBox, x, y));
       for (const b of boxes) m = Math.min(m, dist(b, x, y));
       return m;
     };
     /** A random spot for something of radius `want` (or the roomiest spot found, if at least `min`). */
     const place = (want: number, min: number) => {
       let best: { x: number; y: number; r: number } | null = null;
-      for (let i = 0; i < 36; i++) {
-        const x = R(0.05, 0.95) * w, y = R(0.03, 0.97) * h;
+      // phones: alternate between the band above the photo and the gaps around the buttons and stats below it
+      const low = phone.matches && (lowNext = !lowNext);
+      for (let i = 0; i < 48; i++) {
+        const x = R(0.05, 0.95) * w, y = (low && i < 32 ? R(0.66, 0.99) : R(0.03, 0.97)) * h;
         if (diyas.some((b) => inside(b, x, y))) continue;
         const m = room(x, y);
         if (m >= want) return { x, y, r: want };
@@ -120,7 +137,7 @@ export function FireworksCanvas({ side, sound }: { side: FwSide; sound?: SoundRe
       return Math.min(yy, h) - y;
     };
 
-    const cap = () => 1800 * area;
+    const cap = () => 1800 * clamp((w * h) / (390 * 900), 0.3, 2.2);
     const spawn = (x: number, y: number, vx: number, vy: number, life: number, c: number, w: number, drag: number, g: number, f = 0, ct = 0) => {
       parts.push({ x, y, px: x, py: y, vx, vy, age: 0, life, c, w, drag, g, f, ct });
     };
@@ -130,13 +147,18 @@ export function FireworksCanvas({ side, sound }: { side: FwSide; sound?: SoundRe
       return 'peony';
     };
     // small, medium or large
-    const pickSize = () => { const n = Math.random(); return S * (n < 0.3 ? R(0.13, 0.18) : n < 0.72 ? R(0.22, 0.3) : R(0.34, 0.42)); };
+    const pickSize = () => {
+      const n = Math.random();
+      if (phone.matches) return S * (n < 0.5 ? R(0.24, 0.32) : R(0.36, 0.46)); // phones: medium and large only
+      return S * (n < 0.3 ? R(0.13, 0.18) : n < 0.72 ? R(0.22, 0.3) : R(0.34, 0.42));
+    };
 
     const burst = (x: number, y: number, r: number, kind: Kind) => {
       const c1 = pickColor(), c2 = Math.random() < 0.4 ? pickColor() : c1;
       const size = clamp(r / (S * 0.42), 0, 1);
-      const n = Math.round(clamp(r * 0.95, 36, 150) * clamp(area, 0.6, 1));
-      flashes.push({ x, y, r: r * 1.25, age: 0, life: 0.32, a: 0.32 + size * 0.28, c: YELLOW });
+      // phones: denser shells and a brighter flash, so the smaller bursts read as clearly as on desktop
+      const n = Math.round(clamp(r * 0.95, 36, 150) * clamp(area, 0.6, 1) * (phone.matches ? 1.35 : 1));
+      flashes.push({ x, y, r: r * 1.25, age: 0, life: 0.32, a: (0.32 + size * 0.28) * (phone.matches ? 1.3 : 1), c: YELLOW });
       flashes.push({ x, y, r: Math.max(10, r * 0.14), age: 0, life: 0.1, a: 0.55, c: WHITE });
       // Directions on a sphere, projected flat: denser in the middle like a real shell.
       const sphere = (count: number, reach: number, drag: number, fn: (vx: number, vy: number, i: number) => void) => {
@@ -158,7 +180,7 @@ export function FireworksCanvas({ side, sound }: { side: FwSide; sound?: SoundRe
         // each star crackles out at its own moment between ~0.6s and ~1.6s (the crackle sound covers the same span)
         // crisp sparks, no glow halo: a dense shell of halos would blur into a white clump
         sphere(n, r, 2.6, (vx, vy, i) => { const life = R(1, 1.6); spawn(x, y, vx, vy, life, i % 3 ? CHAMPAGNE : GOLD, 2, 2.6, g, 0, life * R(0.62, 0.98)); });
-        timers.push({ at: t + 0.6, fn: () => emit({ type: 'crackle', side, x: x / w, size }) });
+        timers.push({ at: t + 0.6, fn: () => emit({ type: 'crackle', side: sideOf(x), x: at(x), size }) });
       } else if (kind === 'ring') {
         const tilt = R(0.5, 0.95), rot = R(0, Math.PI);
         for (const [ring, c] of Math.random() < 0.5 ? [[1, c1], [0.55, YELLOW]] : [[1, c1]]) {
@@ -183,11 +205,11 @@ export function FireworksCanvas({ side, sound }: { side: FwSide; sound?: SoundRe
         sphere(Math.round(n * 0.4), r * 0.5, 2.6, (vx, vy) => spawn(x, y, vx, vy, R(1.1, 1.5), YELLOW, 1.9, 2.6, g, GLOW));
         sphere(Math.round(n * 0.75), r, 2.6, (vx, vy) => spawn(x, y, vx, vy, R(1.4, 1.9), c1 === YELLOW ? GOLD : c1, 2.2, 2.6, g, GLOW | TWINKLE));
       }
-      emit({ type: 'burst', side, x: x / w, size });
+      emit({ type: 'burst', side: sideOf(x), x: at(x), size });
     };
 
     const launch = () => {
-      if (w < 40 || h < 40 || rockets.length >= 3) return;
+      if (w < 40 || h < 40 || rockets.length >= cfg.maxRockets) return;
       const kind = pickKind();
       const spot = place(pickSize() * (kind === 'willow' ? 1.15 : 1), 22 * k);
       if (!spot) return;
@@ -197,7 +219,7 @@ export function FireworksCanvas({ side, sound }: { side: FwSide; sound?: SoundRe
       const x0 = spot.x + R(-0.04, 0.04) * rise, y0 = spot.y + rise;
       const g = Math.max(180, rise * 2.2), vy = -Math.sqrt(2 * g * rise), dur = -vy / g;
       rockets.push({ x: x0, y: y0, vx: (spot.x - x0) / dur, vy, g, r, kind, acc: 0 });
-      emit({ type: 'launch', side, x: x0 / w, dur });
+      emit({ type: 'launch', side: sideOf(x0), x: at(x0), dur });
     };
 
     // a ground spark burst (anar-style), sometimes a short chain (ladi) of them
@@ -208,7 +230,7 @@ export function FireworksCanvas({ side, sound }: { side: FwSide; sound?: SoundRe
         const a = -Math.PI / 2 + R(-0.75, 0.75), s = Math.sqrt(2 * 420 * k * reach) * R(0.6, 1);
         spawn(x, y, Math.cos(a) * s, Math.sin(a) * s, R(0.4, 0.8), Math.random() < 0.5 ? YELLOW : ORANGE, 1.8, 1.2, 420 * k, TWINKLE);
       }
-      emit({ type: 'pop', side, x: x / w });
+      emit({ type: 'pop', side: sideOf(x), x: at(x) });
     };
     const crackers = () => {
       const spot = place(60 * k, 34 * k);
@@ -227,12 +249,12 @@ export function FireworksCanvas({ side, sound }: { side: FwSide; sound?: SoundRe
       const spot = place(80 * k, 50 * k);
       if (!spot) { nextSpark = t + 4; return; }
       spark = {
-        age: 0, dur: R(7, 11), cx: spot.x, cy: spot.y, ax: spot.r * 0.5, ay: spot.r * 0.25,
+        side: sideOf(spot.x), age: 0, dur: R(7, 11), cx: spot.x, cy: spot.y, ax: spot.r * 0.5, ay: spot.r * 0.25,
         sp: R(1.1, 1.6), ph: R(0, 6), hx: spot.x, hy: spot.y, hist: [], acc: 0, ping: 0,
       };
     };
     const stopSparkler = () => {
-      if (spark) emit({ type: 'fizz', side, x: spark.cx / w, on: false });
+      if (spark) emit({ type: 'fizz', side: spark.side, x: at(spark.cx), on: false });
       spark = null;
     };
 
@@ -264,7 +286,7 @@ export function FireworksCanvas({ side, sound }: { side: FwSide; sound?: SoundRe
         s.hist.push(s.hx, s.hy);
         if (s.hist.length > 32) s.hist.splice(0, 2);
         // re-announced every half second so the fizz also starts if sound is switched on mid-sparkler
-        if ((s.ping -= dt) <= 0) { s.ping = 0.5; emit({ type: 'fizz', side, x: s.cx / w, on: true }); }
+        if ((s.ping -= dt) <= 0) { s.ping = 0.5; emit({ type: 'fizz', side: s.side, x: at(s.cx), on: true }); }
         for (s.acc += dt * 140 * on; s.acc >= 1; s.acc--) {
           const ang = R(0, Math.PI * 2), sp = R(80, 260) * k;
           spawn(s.hx, s.hy, Math.cos(ang) * sp, Math.sin(ang) * sp, R(0.12, 0.38), Math.random() < 0.6 ? WHITE : YELLOW, 1.1, 4.2, 90 * k, BRANCH | (Math.random() < 0.4 ? TWINKLE : 0));
@@ -357,6 +379,7 @@ export function FireworksCanvas({ side, sound }: { side: FwSide; sound?: SoundRe
     };
 
     const resize = () => {
+      cfg = phone.matches ? CFG_PHONE : CFG;
       w = cv.clientWidth; h = cv.clientHeight;
       const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
       cv.width = Math.max(1, Math.round(w * dpr));
@@ -385,7 +408,7 @@ export function FireworksCanvas({ side, sound }: { side: FwSide; sound?: SoundRe
       if (want === running) return;
       running = want;
       if (want) { last = performance.now(); raf = requestAnimationFrame(frame); }
-      else { cancelAnimationFrame(raf); if (spark) emit({ type: 'fizz', side, x: spark.cx / w, on: false }); }
+      else { cancelAnimationFrame(raf); if (spark) emit({ type: 'fizz', side: spark.side, x: at(spark.cx), on: false }); }
     };
     const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; sync(); });
     io.observe(cv);
@@ -403,9 +426,9 @@ export function FireworksCanvas({ side, sound }: { side: FwSide; sound?: SoundRe
       io.disconnect(); mo.disconnect(); ro.disconnect();
       document.removeEventListener('visibilitychange', sync);
     };
-  }, [side, sound]);
+  }, [sound]);
 
-  return <canvas ref={ref} className={`dw-fw dw-fw-${side}`} />;
+  return <canvas ref={ref} className="dw-fw" aria-hidden />;
 }
 
 /** Sound state for the hero: the engine is created on the first click (never autoplays) and closed on unmount. */
@@ -421,7 +444,7 @@ export function useFireworksSound() {
   return { sound, on, toggle };
 }
 
-/** Small floating speaker button in a corner of the right decor box; fades out with the decor as you scroll. */
+/** Small floating speaker button in the hero's black area; fades out with the decor as you scroll. */
 export function FireworksToggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
   const [ok, setOk] = useState(false);
   useEffect(() => { setOk(!!(window.AudioContext ?? (window as unknown as { webkitAudioContext?: unknown }).webkitAudioContext)); }, []);

@@ -2,11 +2,13 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { AiForm } from '@/components/admin/ai-form';
 import { Flash, PageHeader } from '@/components/admin/ui';
+import { requireAdmin } from '@/lib/auth';
 import { getContent } from '@/lib/cms/content';
 
 export const metadata: Metadata = { title: 'AI Assistant' };
 
 export default async function AiPage() {
+  await requireAdmin();
   const addons = await getContent<{ ai: { enabled: boolean; apiKey: string } }>('settings.addons');
   const ready = addons.ai.enabled && (addons.ai.apiKey || process.env.ANTHROPIC_API_KEY);
   return (

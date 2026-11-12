@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Card, Empty, Flash, PageHeader, StatusBadge, fmtDateTime } from '@/components/admin/ui';
+import { requireAdmin } from '@/lib/auth';
 import { formatINR, getWalletOverview } from '@/lib/wallet';
 
 export const metadata: Metadata = { title: 'Wallet' };
@@ -16,6 +17,7 @@ const TYPE_LABEL: Record<string, string> = {
 };
 
 export default async function AdminWalletPage() {
+  await requireAdmin();
   let overview: Awaited<ReturnType<typeof getWalletOverview>> | null = null;
   let loadError = '';
   try {

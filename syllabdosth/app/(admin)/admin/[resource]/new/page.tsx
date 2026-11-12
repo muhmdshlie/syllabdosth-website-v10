@@ -7,6 +7,7 @@ import { Card, PageHeader } from '@/components/admin/ui';
 import { relationKeys, relationOptions } from '@/lib/admin/crud';
 import { getResource } from '@/lib/admin/resources';
 import type { Row } from '@/lib/admin/types';
+import { requireAdmin } from '@/lib/auth';
 
 export async function generateMetadata({ params }: { params: { resource: string } }): Promise<Metadata> {
   const r = getResource(params.resource);
@@ -14,6 +15,7 @@ export async function generateMetadata({ params }: { params: { resource: string 
 }
 
 export default async function NewRecord({ params, searchParams }: { params: { resource: string }; searchParams: Record<string, string | undefined> }) {
+  await requireAdmin();
   const r = getResource(params.resource);
   if (!r || r.noCreate) notFound();
   const options = await relationOptions(relationKeys(r));
