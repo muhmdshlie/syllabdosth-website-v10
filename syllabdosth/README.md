@@ -119,7 +119,7 @@ checks the user's role (and for pros/faculty, that the record is theirs). Bookin
 unguessable IDs, so a guest's booking link acts as their private access link.
 
 ## Content to replace before launch
-- Logo: done. Files in `public/` (`logo-forest.png` for light backgrounds, `logo-white.png` for dark).
+- Logo: done. Files in `public/` (`logo-noir.png` for light backgrounds, `logo-white.png` for dark); square symbol icons in `app/` (favicon, apple icon) and `public/icons/`.
 - Photos: change them in Admin → CMS (and on each course/service/blog/faculty page). The built-in defaults live in `lib/images.ts`. They are free Unsplash photos (commercial use allowed) loaded from
   Unsplash. To use your own, drop the file in `public/photos/` and put its path in `lib/images.ts`.
   A course's `image_url` in Supabase overrides the default photo for that course.

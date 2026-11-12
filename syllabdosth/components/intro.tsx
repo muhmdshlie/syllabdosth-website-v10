@@ -8,7 +8,7 @@ export function Intro({ logo = '/logo-white.png' }: { logo?: string }) {
       <script dangerouslySetInnerHTML={{ __html: script }} />
       <div className="intro" aria-hidden>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={logo} alt="" width={853} height={208} className="h-14 w-auto sm:h-16" />
+        <img src={logo} alt="" width={1200} height={319} className="h-16 w-auto sm:h-20" />
         <span className="bar" />
       </div>
     </>

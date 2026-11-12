@@ -54,7 +54,12 @@ export function AdminFrame({ children, logo, user, badges, alerts, demo }: Props
         <div className="flex h-[78px] shrink-0 items-center justify-center border-b border-white/[0.07] px-5">
           <Link href="/admin" className="flex items-center" aria-label="Admin dashboard">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={logo} alt="Syllabdosth" className={`w-auto object-contain transition-all ${collapsed ? 'lg:h-6 lg:max-w-[48px]' : 'h-8 max-w-[190px]'} h-8 max-w-[190px]`} />
+            <img src={logo} alt="Syllabdosth" width={1200} height={319} className={`h-10 w-auto max-w-[190px] object-contain ${collapsed ? 'lg:hidden' : ''}`} />
+            {/* Collapsed sidebar is too narrow for the wordmark: show the bulb-and-book symbol instead. */}
+            {collapsed && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src="/icons/symbol-white.png" alt="Syllabdosth" width={128} height={128} className="hidden h-10 w-10 lg:block" />
+            )}
           </Link>
         </div>
         <nav className="adm-scroll flex-1 overflow-y-auto px-3 py-4">
